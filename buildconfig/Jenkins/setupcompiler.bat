@@ -18,6 +18,8 @@ set _grep_exe=%_git_root_dir%\usr\bin\grep.exe
 set _sdk_version=8.1
 set _vs_version=14
 call "%VS140COMNTOOLS%\..\..\VC\vcvarsall.bat" amd64 %_sdk_version%
+:: Special variable to tell msbuild to use the existing environment
+set UseEnv=true
 set CM_GENERATOR=Visual Studio %_vs_version% 2015 Win64
 
 set _builddir=%1
