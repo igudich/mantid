@@ -22,11 +22,11 @@ set ( SRC_FILES
 	src/BinaryOperation.cpp
 	src/CalMuonDeadTime.cpp
 	src/CalMuonDetectorPhases.cpp
+	src/CalculateCarpenterSampleCorrection.cpp
 	src/CalculateCountRate.cpp
 	src/CalculateDIFC.cpp
 	src/CalculateEfficiency.cpp
 	src/CalculateFlatBackground.cpp
-	src/CalculateCarpenterSampleCorrection.cpp
 	src/CalculateMuonAsymmetry.cpp
 	src/CalculatePolynomialBackground.cpp
 	src/CalculateSlits.cpp
@@ -143,6 +143,7 @@ set ( SRC_FILES
 	src/FindEPP.cpp
 	src/FindPeakBackground.cpp
 	src/FindPeaks.cpp
+	src/FindReflectometryLines2.cpp
 	src/FitPeak.cpp
 	src/FitPeaks.cpp
 	src/FixGSASInstrumentFile.cpp
@@ -358,11 +359,11 @@ set ( INC_FILES
 	inc/MantidAlgorithms/BoostOptionalToAlgorithmProperty.h
 	inc/MantidAlgorithms/CalMuonDeadTime.h
 	inc/MantidAlgorithms/CalMuonDetectorPhases.h
+	inc/MantidAlgorithms/CalculateCarpenterSampleCorrection.h
 	inc/MantidAlgorithms/CalculateCountRate.h
 	inc/MantidAlgorithms/CalculateDIFC.h
 	inc/MantidAlgorithms/CalculateEfficiency.h
 	inc/MantidAlgorithms/CalculateFlatBackground.h
-	inc/MantidAlgorithms/CalculateCarpenterSampleCorrection.h
 	inc/MantidAlgorithms/CalculateMuonAsymmetry.h
 	inc/MantidAlgorithms/CalculatePolynomialBackground.h
 	inc/MantidAlgorithms/CalculateSlits.h
@@ -479,6 +480,7 @@ set ( INC_FILES
 	inc/MantidAlgorithms/FindEPP.h
 	inc/MantidAlgorithms/FindPeakBackground.h
 	inc/MantidAlgorithms/FindPeaks.h
+	inc/MantidAlgorithms/FindReflectometryLines2.h
 	inc/MantidAlgorithms/FitPeak.h
 	inc/MantidAlgorithms/FitPeaks.h
 	inc/MantidAlgorithms/FixGSASInstrumentFile.h
@@ -827,6 +829,7 @@ set ( TEST_FILES
 	FindEPPTest.h
 	FindPeakBackgroundTest.h
 	FindPeaksTest.h
+	FindReflectometryLines2Test.h
 	FitPeakTest.h
 	FitPeaksTest.h
 	FixGSASInstrumentFileTest.h
