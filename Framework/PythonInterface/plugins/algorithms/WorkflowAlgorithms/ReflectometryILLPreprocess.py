@@ -2,27 +2,25 @@
 
 from __future__ import (absolute_import, division, print_function)
 
-from mantid.api import (AlgorithmFactory, DataProcessorAlgorithm, FileAction, ITableWorkspaceProperty,
+from mantid.api import (AlgorithmFactory, DataProcessorAlgorithm, FileAction,
                         MatrixWorkspaceProperty, MultipleFileProperty, PropertyMode, WorkspaceUnitValidator)
 from mantid.kernel import (CompositeValidator, Direction, FloatArrayBoundedValidator, FloatArrayLengthValidator,
                            IntArrayLengthValidator, IntArrayBoundedValidator, IntArrayProperty,
                            IntBoundedValidator, Property, StringListValidator)
-from mantid.simpleapi import (AddSampleLog, CalculatePolynomialBackground, CloneWorkspace, ConvertUnits,
-                              CreateEmptyTableWorkspace, Divide, ExtractMonitors, Fit,
-                              Integration, LoadILLReflectometry, MergeRuns, Minus, mtd, NormaliseToMonitor,
-                              RebinToWorkspace, Scale, Transpose)
+from mantid.simpleapi import (AddSampleLog, CalculatePolynomialBackground, CloneWorkspace, ConvertUnits, CreateSingleValuedWorkspace,
+                              Divide, ExtractMonitors, FindReflectometryLines, LoadAndMerge, Minus, mtd,
+                              NormaliseToMonitor, RebinToWorkspace, ReflectometryCorrectDetectorAngle, Scale, Transpose)
 import numpy
-import os.path
 import ReflectometryILL_common as common
 
 
 class Prop:
-    BEAM_ANGLE = 'BraggAngle'
-    BEAM_CENTRE = 'BeamCentre'
-    BEAM_POS_WS = 'BeamPositionWorkspace'
+    BEAM_POS = 'BeamPosition'
     BKG_METHOD = 'FlatBackground'
     CLEANUP = 'Cleanup'
+    DETECTOR_ANGLE = 'TwoTheta'
     DIRECT_BEAM_POS_WS = 'DirectBeamPositionWorkspace'
+    DIRECT_BEAM_WS = 'DirectBeamWorkspace'
     FLUX_NORM_METHOD = 'FluxNormalisation'
     FOREGROUND_HALF_WIDTH = 'ForegroundHalfWidth'
     HIGH_BKG_OFFSET = 'HighAngleBkgOffset'
@@ -100,12 +98,12 @@ class ReflectometryILLPreprocess(DataProcessorAlgorithm):
         wsPrefix = self.getPropertyValue(Prop.OUTPUT_WS)
         self._names = common.WSNameSource(wsPrefix, cleanupMode)
 
-        ws, beamPosWS = self._inputWS()
+        ws = self._inputWS()
 
         ws, monWS = self._extractMonitors(ws)
 
-        if beamPosWS is None:
-            beamPosWS = self._findLine(ws)
+        beamPosWS = self._beamPosition(ws)
+        ws = self._correctDetectorAngle(ws, beamPosWS)
 
         ws = self._addForegroundToLogs(ws, beamPosWS)
 
@@ -149,17 +147,12 @@ class ReflectometryILLPreprocess(DataProcessorAlgorithm):
                                                      validator=WorkspaceUnitValidator('TOF'),
                                                      optional=PropertyMode.Optional),
                              doc='An input workspace (units TOF) if no Run is specified.')
-        self.declareProperty(ITableWorkspaceProperty(Prop.BEAM_POS_WS,
-                                                     defaultValue='',
-                                                     direction=Direction.Input,
-                                                     optional=PropertyMode.Optional),
-                             doc='A beam position table corresponding to InputWorkspace.')
-        self.declareProperty(Prop.BEAM_ANGLE,
+        self.declareProperty(Prop.DETECTOR_ANGLE,
                              defaultValue=Property.EMPTY_DBL,
-                             doc='A user-defined beam angle (unit degrees).')
-        self.declareProperty(name=Prop.BEAM_CENTRE,
+                             doc='A user-defined detector angle (unit degrees).')
+        self.declareProperty(name=Prop.BEAM_POS,
                              defaultValue=Property.EMPTY_DBL,
-                             doc='A workspace index corresponding to the beam centre.')
+                             doc='A workspace index of the beam centre.')
         self.declareProperty(MatrixWorkspaceProperty(Prop.OUTPUT_WS,
                                                      defaultValue='',
                                                      direction=Direction.Output),
@@ -172,11 +165,16 @@ class ReflectometryILLPreprocess(DataProcessorAlgorithm):
                              defaultValue=common.WSCleanup.ON,
                              validator=StringListValidator([common.WSCleanup.ON, common.WSCleanup.OFF]),
                              doc='Enable or disable intermediate workspace cleanup.')
-        self.declareProperty(ITableWorkspaceProperty(Prop.DIRECT_BEAM_POS_WS,
+        self.declareProperty(MatrixWorkspaceProperty(Prop.DIRECT_BEAM_WS,
                                                      defaultValue='',
                                                      direction=Direction.Input,
                                                      optional=PropertyMode.Optional),
-                             doc='A beam position table from a direct beam measurement.')
+                             doc='A direct beam workspace for detector angle calibarion.')
+        self.declareProperty(MatrixWorkspaceProperty(Prop.DIRECT_BEAM_POS_WS,
+                                                     defaultValue='',
+                                                     direction=Direction.Input,
+                                                     optional=PropertyMode.Optional),
+                             doc='A single value workspace containing the direct beam position workspace index.')
         self.declareProperty(MatrixWorkspaceProperty(Prop.WATER_REFERENCE,
                                                      defaultValue='',
                                                      direction=Direction.Input,
@@ -215,11 +213,11 @@ class ReflectometryILLPreprocess(DataProcessorAlgorithm):
                              defaultValue=5,
                              validator=nonnegativeInt,
                              doc='Width of flat background region towards larger detector angles from the foreground centre, in pixels.')
-        self.declareProperty(ITableWorkspaceProperty(Prop.OUTPUT_BEAM_POS_WS,
+        self.declareProperty(MatrixWorkspaceProperty(Prop.OUTPUT_BEAM_POS_WS,
                                                      defaultValue='',
                                                      direction=Direction.Output,
                                                      optional=PropertyMode.Optional),
-                             doc='Output the beam position table.')
+                             doc='A single value workspace containing the beam position workspace index.')
 
     def validateInputs(self):
         """Return a dictionary containing issues found in properties."""
@@ -230,13 +228,12 @@ class ReflectometryILLPreprocess(DataProcessorAlgorithm):
             if self.getProperty(Prop.LOW_BKG_WIDTH).value == 0 and self.getProperty(Prop.HIGH_BKG_WIDTH).value == 0:
                 issues[Prop.BKG_METHOD] = "Cannot calculate flat background if both upper and lower background widths are zero."
             if not self.getProperty(Prop.INPUT_WS).isDefault and self.getProperty(Prop.BEAM_POS_WS).isDefault \
-                    and self.getProperty(Prop.BEAM_CENTRE).isDefault:
-                issues[Prop.BEAM_POS_WS] = "Cannot subtract flat background without knowledge of peak position/foreground centre."
-                issues[Prop.BEAM_CENTRE] = "Cannot subtract flat background without knowledge of peak position/foreground centre."
-        if not self.getProperty(Prop.BEAM_CENTRE).isDefault:
-            beamCentre = self.getProperty(Prop.BEAM_CENTRE).value
+                    and self.getProperty(Prop.BEAM_POS).isDefault:
+                issues[Prop.BEAM_POS] = "Cannot subtract flat background without knowledge of peak position/foreground centre."
+        if not self.getProperty(Prop.BEAM_POS).isDefault:
+            beamCentre = self.getProperty(Prop.BEAM_POS).value
             if beamCentre < 0 or beamCentre > 255:
-                issues[Prop.BEAM_CENTRE] = "Value should be between 0 and 255."
+                issues[Prop.BEAM_POS] = "Value should be between 0 and 255."
         return issues
 
     def _addForegroundToLogs(self, ws, beamPosWS):
@@ -271,6 +268,23 @@ class ReflectometryILLPreprocess(DataProcessorAlgorithm):
             EnableLogging=self._subalgLogging)
         return ws
 
+    def _beamPosition(self, ws):
+        """Return a single value workspace containing the beam centre index."""
+        beamPosWSName = self._names.withSuffix('beam_position')
+        if not self.getProperty(Prop.BEAM_POS).isDefault:
+            position = self.getProperty(Prop.BEAM_POS).value
+            beamPosWS = CreateSingleValuedWorkspace(
+                OutputWorkspace=beamPosWSName,
+                DataValue=position,
+                EnableLogging=self._subalgLogging)
+            return beamPosWS
+        else:
+            beamPosWS = FindReflectometryLines(
+                InputWorkspace=ws,
+                OutputWorkspace=beamPosWSName,
+                EnableLogging=self._subalgLogging)
+            return beamPosWS.OutputWorkspace
+
     def _convertToWavelength(self, ws):
         """Convert the X units of ws to wavelength."""
         wavelengthWSName = self._names.withSuffix('in_wavelength')
@@ -283,14 +297,42 @@ class ReflectometryILLPreprocess(DataProcessorAlgorithm):
         self._cleanup.cleanup(ws)
         return wavelengthWS
 
-    def _createFakePeakPositionTable(self, peakPos):
-        """Create a peak position TableWorkspace with a single column for peakPos."""
-        tableName = self._names.withSuffix('peak_position_table')
-        table = CreateEmptyTableWorkspace(OutputWorkspace=tableName,
-                                          EnableLogging=self._subalgLogging)
-        table.addColumn('double', 'PeakCentre')
-        table.addRow((peakPos,))
-        return table
+    def _correctDetectorAngle(self, ws, beamPosWS):
+        """Correct or adjust the detector angle."""
+        beamPosition = beamPosWS.readY(0)[0]
+        instrumentName = ws.getInstrument().getName()
+        detectorComponent = 'detector'
+        pixelSize = common.pixelSize(instrumentName)
+        correctedWSName = self._names.withSuffix('detector_angle_corrected')
+        if not self.getProperty(Prop.DETECTOR_ANGLE).isDefault:
+            twoTheta = self.getProperty(Prop.DETECTOR_ANGLE).value
+            correctedWS = ReflectometryCorrectDetectorAngle(
+                InputWorkspace=ws,
+                OutputWorkspace=correctedWSName,
+                LinePosition=beamPosition,
+                TwoTheta=twoTheta,
+                DetectorComponent=detectorComponent,
+                PixelSize=pixelSize,
+                EnableLogging=self._subalgLogging)
+            self._cleanup.cleanup(ws)
+            return correctedWS
+        elif not self.getProperty(Prop.DIRECT_BEAM_WS).isDefault:
+            directWS = self.getProperty(Prop.DIRECT_BEAM_WS).value
+            directBeamPosWS = self.getProperty(Prop.DIRECT_BEAM_POS_WS).value
+            directBeamPos = directBeamPosWS.readY(0)[0]
+            correctedWS = ReflectometryCorrectDetectorAngle(
+                InputWorkspace=ws,
+                OutputWorkspace=correctedWSName,
+                LinePosition=beamPosition,
+                DirectLinePosition=directBeamPos,
+                DirectBeamWorkspace=directWS,
+                DetectorComponent=detectorComponent,
+                PixelSize=pixelSize,
+                EnableLogging=self._subalgLogging)
+            self._cleanup.cleanup(ws)
+            return correctedWS
+        else:
+            return ws
 
     def _extractMonitors(self, ws):
         """Extract monitor spectra from ws to another workspace."""
@@ -312,36 +354,6 @@ class ReflectometryILLPreprocess(DataProcessorAlgorithm):
         self.setProperty(Prop.OUTPUT_WS, ws)
         self._cleanup.cleanup(ws)
         self._cleanup.finalCleanup()
-
-    def _findLine(self, ws):
-        """Return a peak position workspace."""
-        # TODO There should be a better algorithm in Mantid to achieve this.
-        integratedWSName = self._names.withSuffix('integrated')
-        integratedWS = Integration(InputWorkspace=ws,
-                                   OutputWorkspace=integratedWSName,
-                                   EnableLogging=self._subalgLogging)
-        transposedWSName = self._names.withSuffix('transposed')
-        transposedWS = Transpose(InputWorkspace=integratedWS,
-                                 OutputWorkspace=transposedWSName,
-                                 EnableLogging=self._subalgLogging)
-        self._cleanup.cleanup(integratedWS)
-        # Convert spectrum numbers to WS indices.
-        wsIndices = numpy.arange(0, ws.getNumberHistograms())
-        xs = transposedWS.dataX(0)
-        ys = transposedWS.readY(0)
-        numpy.copyto(xs, wsIndices)
-        indexOfMax = ys.argmax()
-        heightGuess = ys[indexOfMax]
-        posGuess = xs[indexOfMax]
-        sigmaGuess = 3
-        f = 'name=Gaussian, PeakCentre={}, Height={}, Sigma={}'.format(posGuess, heightGuess, sigmaGuess)
-        fitResult = Fit(Function=f,
-                        InputWorkspace=transposedWS,
-                        EnableLogging=self._subalgLogging)
-        self._cleanup.cleanup(transposedWS)
-        peakPos = fitResult.Function.PeakCentre
-        posTable = self._createFakePeakPositionTable(peakPos)
-        return posTable
 
     def _flatBkgRanges(self, ws, peakPosWS):
         """Return spectrum number ranges for flat background fitting."""
@@ -369,17 +381,9 @@ class ReflectometryILLPreprocess(DataProcessorAlgorithm):
         highRange = [highEndIndex + sign * 0.5, highStartIndex + sign * 0.5]
         return highRange + lowRange
 
-    def _workspaceIndexDirection(self, ws):
-        """Return 1 if workspace indices increase with Bragg angle, otherwise return -1."""
-        firstDet = ws.getDetector(0)
-        firstAngle = ws.detectorTwoTheta(firstDet)
-        lastDet = ws.getDetector(ws.getNumberHistograms() - 1)
-        lastAngle = ws.detectorTwoTheta(lastDet)
-        return 1 if firstAngle < lastAngle else -1
-
     def _foregroundCentre(self, beamPosWS):
         """Return the detector id of the foreground centre pixel."""
-        return int(numpy.rint(beamPosWS.cell('PeakCentre', 0)))
+        return int(numpy.rint(beamPosWS.readY(0)[0]))
 
     def _foregroundWidths(self):
         """Return an array of [low angle width, high angle width]."""
@@ -392,66 +396,20 @@ class ReflectometryILLPreprocess(DataProcessorAlgorithm):
 
     def _inputWS(self):
         """Return a raw input workspace and beam position table as tuple."""
-        inputFiles = self.getProperty(Prop.RUN).value
-        if len(inputFiles) > 0:
-            flattened = list()
-            for f in inputFiles:
-                # Flatten input files into a single list
-                if isinstance(f, str):
-                    flattened.append(f)
-                else:
-                    # f is a list; concatenate.
-                    flattened += f
-            beamCentre = self.getProperty(Prop.BEAM_CENTRE).value
-            beamAngle = self.getProperty(Prop.BEAM_ANGLE).value
-            dbPosWS = ''
-            if not self.getProperty(Prop.DIRECT_BEAM_POS_WS).isDefault:
-                dbPosWS = self.getProperty(Prop.DIRECT_BEAM_POS_WS).value
-            filename = flattened.pop(0)
-            numor = os.path.basename(filename).split('.')[0]
-            firstWSName = self._names.withSuffix('raw-' + numor)
-            beamPosWSName = self._names.withSuffix('beamPos-' + numor)
-            LoadILLReflectometry(Filename=filename,
-                                 OutputWorkspace=firstWSName,
-                                 DirectBeamPosition=dbPosWS,
-                                 BeamCentre=beamCentre,
-                                 BraggAngle=beamAngle,
-                                 XUnit='TimeOfFlight',
-                                 OutputBeamPosition=beamPosWSName,
-                                 EnableLogging=self._subalgLogging)
-            mergedWS = mtd[firstWSName]
-            beamPosWS = mtd[beamPosWSName]
-            self._cleanup.cleanupLater(beamPosWS)
+        inputFiles = self.getPropertyValue(Prop.RUN)
+        if inputFiles:
+            options = {'XUnit': 'TimeOfFlight'}
             mergedWSName = self._names.withSuffix('merged')
-            for i, filename in enumerate(flattened):
-                numor = os.path.basename(filename).split('.')[0]
-                rawWSName = self._names.withSuffix('raw-' + numor)
-                LoadILLReflectometry(Filename=filename,
-                                     OutputWorkspace=rawWSName,
-                                     DirectBeamPosition=dbPosWS,
-                                     XUnit='TimeOfFlight',
-                                     EnableLogging=self._subalgLogging)
-                rawWS = mtd[rawWSName]
-                mergedWS = MergeRuns(InputWorkspaces=[mergedWS, rawWS],
-                                     OutputWorkspace=mergedWSName,
-                                     EnableLogging=self._subalgLogging)
-                if i == 0:
-                    self._cleanup.cleanup(firstWSName)
-                self._cleanup.cleanup(rawWS)
-            return mergedWS, beamPosWS
-        ws = self.getProperty(Prop.INPUT_WS).value
-        self._cleanup.protect(ws)
-        if not self.getProperty(Prop.BEAM_POS_WS).isDefault:
-            beamPosWS = self.getProperty(Prop.BEAM_POS_WS).value
-            self._cleanup.protect(beamPosWS)
+            mergedWS = LoadAndMerge(Filename=inputFiles,
+                                    OutputWorkspace=mergedWSName,
+                                    LoaderName='LoadILLReflectometry',
+                                    LoaderOptions=options,
+                                    EnableLogging=self._subalgLogging)
+            return mergedWS
         else:
-            if not self.getProperty(Prop.BEAM_CENTRE).isDefault:
-                peakPos = self.getProperty(Prop.BEAM_CENTRE).value
-                beamPosWS = self._createFakePeakPositionTable(peakPos)
-            else:
-                # Beam position will be fitted later.
-                beamPosWS = None
-        return ws, beamPosWS
+            ws = self.getProperty(Prop.INPUT_WS).value
+            self._cleanup.protect(ws)
+            return ws
 
     def _normaliseToFlux(self, detWS, monWS):
         """Normalise ws to monitor counts or counting time."""
@@ -569,5 +527,14 @@ class ReflectometryILLPreprocess(DataProcessorAlgorithm):
         self._cleanup.cleanup(rebinnedWaterWS)
         self._cleanup.cleanup(ws)
         return calibratedWS
+
+    def _workspaceIndexDirection(self, ws):
+        """Return 1 if workspace indices increase with Bragg angle, otherwise return -1."""
+        firstDet = ws.getDetector(0)
+        firstAngle = ws.detectorTwoTheta(firstDet)
+        lastDet = ws.getDetector(ws.getNumberHistograms() - 1)
+        lastAngle = ws.detectorTwoTheta(lastDet)
+        return 1 if firstAngle < lastAngle else -1
+
 
 AlgorithmFactory.subscribe(ReflectometryILLPreprocess)

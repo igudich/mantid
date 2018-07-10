@@ -5,11 +5,9 @@ from __future__ import (absolute_import, division, print_function)
 from mantid.api import (AlgorithmFactory, DataProcessorAlgorithm, MatrixWorkspaceProperty, PropertyMode, WorkspaceUnitValidator)
 from mantid.kernel import (CompositeValidator, Direction, FloatArrayBoundedValidator, FloatArrayProperty,
                            IntArrayBoundedValidator, IntArrayLengthValidator, IntArrayProperty, Property, StringListValidator)
-from mantid.simpleapi import (AddSampleLog, CreateWorkspace, CropWorkspace, Divide, ExtractSingleSpectrum,
-                              Multiply, RebinToWorkspace, ReflectometrySumInQ)
+from mantid.simpleapi import (AddSampleLog, CropWorkspace, Divide, ExtractSingleSpectrum, RebinToWorkspace, ReflectometrySumInQ)
 import numpy
 import ReflectometryILL_common as common
-from scipy import constants
 
 
 class Sample:

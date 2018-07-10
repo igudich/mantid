@@ -58,7 +58,7 @@ class ReflectometryILLConvertToQ(DataProcessorAlgorithm):
 
         ws, directWS = self._inputWS()
 
-        ws = self._correctForChopperOpenings(ws, directWS)
+        ws = self._correctForChopperOpenings(ws)
         ws = self._convertToMomentumTransfer(ws)
         if directWS is not None:
             directWS = self._sameQAndDQ(ws, directWS, 'direct_')
@@ -146,7 +146,7 @@ class ReflectometryILLConvertToQ(DataProcessorAlgorithm):
             raise RuntimeError('Unrecognized instrument {}. Only D17 and FIGARO are supported.'.format(instrumentName))
         sumType = logs.getProperty(common.SampleLogs.SUM_TYPE).value
         polarized = self.getProperty(Prop.POLARIZED).value
-        pixelSize = 0.001195 if instrumentName == 'D17' else 0.0012
+        pixelSize = common.pixelSize(instrumentName)
         detResolution = common.detectorResolution()
         chopperSpeed = common.chopperSpeed(logs, instrumentName)
         chopperOpening = common.chopperOpeningAngle(logs, instrumentName)
@@ -180,8 +180,9 @@ class ReflectometryILLConvertToQ(DataProcessorAlgorithm):
         self._cleanup.cleanup(ws)
         return qWS
 
-    def _correctForChopperOpenings(self, ws, directWS):
+    def _correctForChopperOpenings(self, ws):
         """Corrects ws for different chopper opening angles."""
+        directWS = self.getProperty(Prop.DIRECT_WS).value
         correctedWS = common.correctForChopperOpenings(ws, directWS, self._names, self._cleanup, self._subalgLogging)
         return correctedWS
 

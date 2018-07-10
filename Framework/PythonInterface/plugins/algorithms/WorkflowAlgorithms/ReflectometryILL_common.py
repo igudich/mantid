@@ -5,6 +5,7 @@ from __future__ import (absolute_import, division, print_function)
 from mantid.simpleapi import (CreateWorkspace, DeleteWorkspace, mtd, Multiply)
 import scipy.constants as constants
 
+
 def chopperOpeningAngle(sampleLogs, instrumentName):
     """Return the chopper opening angle in degrees."""
     if instrumentName == 'D17':
@@ -77,7 +78,16 @@ def correctForChopperOpenings(ws, directWS, names, cleanup, logging):
 
 
 def detectorResolution():
+    """Return the dector resolution in metres."""
     return 0.0022
+
+
+def pixelSize(instrumentName):
+    """Return the pixel size in metres."""
+    if instrumentName == 'D17':
+        return 0.001195
+    else:
+        return 0.0012
 
 
 def slitSizeLogEntry(instrumentName, slitNumber):
