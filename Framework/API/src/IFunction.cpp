@@ -62,10 +62,9 @@ struct TieNode {
  */
 IFunction::~IFunction() {
   m_attrs.clear();
-  if (m_handler) {
-    delete m_handler;
-    m_handler = nullptr;
-  }
+  delete m_handler;
+  m_handler = nullptr;
+
 }
 
 /**
