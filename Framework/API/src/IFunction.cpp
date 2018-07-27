@@ -64,7 +64,6 @@ IFunction::~IFunction() {
   m_attrs.clear();
   delete m_handler;
   m_handler = nullptr;
-
 }
 
 /**
