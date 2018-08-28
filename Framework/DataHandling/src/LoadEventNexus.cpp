@@ -256,6 +256,7 @@ void LoadEventNexus::init() {
       make_unique<PropertyWithValue<bool>>("LoadLogs", true, Direction::Input),
       "Load the Sample/DAS logs from the file (default True).");
 
+
 #ifdef MPI_EXPERIMENTAL
   declareProperty(make_unique<PropertyWithValue<bool>>("UseParallelLoader",
                                                        true, Direction::Input),
@@ -800,8 +801,8 @@ void LoadEventNexus::loadEvents(API::Progress *const prog,
     auto ws = m_ws->getSingleHeldWorkspace();
     m_file->close();
     try {
-      ParallelEventLoader::load(*ws, m_filename, m_top_entry_name, bankNames,
-                                event_id_is_spec);
+      ParallelEventLoader::loadMPI(*ws, m_filename, m_top_entry_name, bankNames,
+                                   event_id_is_spec);
       g_log.information() << "Used ParallelEventLoader.\n";
       loaded = true;
       shortest_tof = 0.0;
@@ -812,6 +813,10 @@ void LoadEventNexus::loadEvents(API::Progress *const prog,
     }
     safeOpenFile(m_filename);
   }
+
+  //TODO multiprocess loader
+
+
   if (!loaded) {
     bool precount = getProperty("Precount");
     int chunk = getProperty("ChunkNumber");
