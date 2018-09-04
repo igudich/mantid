@@ -5,6 +5,7 @@
 //     & Institut Laue - Langevin
 // SPDX - License - Identifier: GPL - 3.0 +
 #include "MantidParallel/IO/EventLoader.h"
+#include "MantidKernel/ConfigService.h"
 #include "MantidParallel/IO/EventLoaderHelpers.h"
 #include "MantidParallel/IO/MultiProcessEventLoader.h"
 #include "MantidParallel/IO/NXEventDataLoader.h"
@@ -59,8 +60,12 @@ void load(const std::string &filename, const std::string &groupname,
           const std::vector<int32_t> &bankOffsets,
           std::vector<std::vector<Types::Event::TofEvent> *> eventLists) {
   auto num = std::thread::hardware_concurrency();
-  MultiProcessEventLoader loader(static_cast<unsigned>(eventLists.size()), num,
-                                 num, "./bin/MantidNexusParallelLoader");
+  // TODO tmp choose the optimal number of processes and cores
+  std::string executableName =
+      Mantid::Kernel::ConfigService::Instance().getDirectoryOfExecutable() +
+          "/MantidNexusParallelLoader";
+  MultiProcessEventLoader loader(static_cast<unsigned>(eventLists.size()), 1,
+                                 1, executableName);
   loader.load(filename, groupname, bankNames, bankOffsets, eventLists);
 }
 
