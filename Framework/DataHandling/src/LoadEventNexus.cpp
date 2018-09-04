@@ -562,6 +562,12 @@ LoadEventNexus::runLoadNexusLogs<EventWorkspaceCollection_sptr>(
   return ret;
 }
 
+enum class LoadEventNexus::LoaderType {
+  MPI,
+  MULTIPROCESS,
+  DEFAULT
+};
+
 //-----------------------------------------------------------------------------
 /**
  * Load events from the file.

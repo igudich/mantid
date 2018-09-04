@@ -166,11 +166,7 @@ protected:
 
 private:
   /// Possible loaders types
-  enum LoaderType {
-    MPI,
-    MULTIPROCESS,
-    DEFAULT
-  };
+  enum class LoaderType;
 
   /// Intialisation code
   void init() override;
