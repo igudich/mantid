@@ -60,9 +60,7 @@ struct TieNode {
 /**
  * Destructor
  */
-IFunction::~IFunction() {
-  m_attrs.clear();
-}
+IFunction::~IFunction() { m_attrs.clear(); }
 
 /**
  * Virtual copy constructor

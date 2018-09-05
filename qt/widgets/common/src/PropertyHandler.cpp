@@ -470,7 +470,7 @@ void PropertyHandler::renameChildren() const {
     return;
   // rename children
   for (size_t i = 0; i < m_cf->nFunctions(); i++) {
-	boost::shared_ptr<PropertyHandler> h = getHandler(i);
+    boost::shared_ptr<PropertyHandler> h = getHandler(i);
     if (!h)
       continue;
     QtProperty *nameProp = h->item()->property();
@@ -514,15 +514,18 @@ QString PropertyHandler::functionPrefix() const {
 boost::shared_ptr<PropertyHandler> PropertyHandler::parentHandler() const {
   if (!m_parent)
     return nullptr;
-  boost::shared_ptr<PropertyHandler> ph = boost::dynamic_pointer_cast<PropertyHandler>(m_parent->getHandler());
+  boost::shared_ptr<PropertyHandler> ph =
+      boost::dynamic_pointer_cast<PropertyHandler>(m_parent->getHandler());
   return ph;
 }
 // Return the child's handler
-boost::shared_ptr<PropertyHandler> PropertyHandler::getHandler(std::size_t i) const {
+boost::shared_ptr<PropertyHandler>
+PropertyHandler::getHandler(std::size_t i) const {
   if (!m_cf || i >= m_cf->nFunctions())
     return nullptr;
-  boost::shared_ptr<PropertyHandler> ph = 
-boost::dynamic_pointer_cast<PropertyHandler>(m_cf->getFunction(i)->getHandler());
+  boost::shared_ptr<PropertyHandler> ph =
+      boost::dynamic_pointer_cast<PropertyHandler>(
+          m_cf->getFunction(i)->getHandler());
   return ph;
 }
 /** Returns 'this' if item == m_item and this is a composite function or
@@ -811,7 +814,7 @@ void PropertyHandler::setAttribute(const QString &attName,
   }
   if (cfun()) {
     for (size_t i = 0; i < cfun()->nFunctions(); ++i) {
-		boost::shared_ptr<PropertyHandler> h = getHandler(i);
+      boost::shared_ptr<PropertyHandler> h = getHandler(i);
       h->setAttribute(attName, attValue);
     }
   }
@@ -1222,7 +1225,7 @@ void PropertyHandler::calcBaseAll() {
   if (!m_cf)
     return;
   for (size_t i = 0; i < m_cf->nFunctions(); ++i) {
-	boost::shared_ptr<PropertyHandler> h = getHandler(i);
+    boost::shared_ptr<PropertyHandler> h = getHandler(i);
     if (h->pfun()) {
       h->calcBase();
     } else if (h->cfun()) {
@@ -1397,7 +1400,7 @@ QList<PropertyHandler *> PropertyHandler::getPeakList() {
   }
   if (m_cf) {
     for (size_t i = 0; i < m_cf->nFunctions(); ++i) {
-	  boost::shared_ptr<PropertyHandler> h = getHandler(i);
+      boost::shared_ptr<PropertyHandler> h = getHandler(i);
       if (!h)
         continue;
       if (h->pfun()) {

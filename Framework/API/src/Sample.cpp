@@ -28,8 +28,9 @@ using Geometry::ShapeFactory;
  */
 Sample::Sample()
     : m_name(), m_shape(ShapeFactory().createShape("")), m_environment(),
-      m_lattice(std::unique_ptr<Geometry::OrientedLattice>(nullptr)), m_crystalStructure(), m_samples(), m_geom_id(0),
-      m_thick(0.0), m_height(0.0), m_width(0.0) {}
+      m_lattice(std::unique_ptr<Geometry::OrientedLattice>(nullptr)),
+      m_crystalStructure(), m_samples(), m_geom_id(0), m_thick(0.0),
+      m_height(0.0), m_width(0.0) {}
 
 /**
  * Copy constructor
@@ -37,7 +38,8 @@ Sample::Sample()
  */
 Sample::Sample(const Sample &copy)
     : m_name(copy.m_name), m_shape(copy.m_shape),
-      m_environment(copy.m_environment), m_lattice(std::unique_ptr<Geometry::OrientedLattice>(nullptr)),
+      m_environment(copy.m_environment),
+      m_lattice(std::unique_ptr<Geometry::OrientedLattice>(nullptr)),
       m_crystalStructure(), m_samples(copy.m_samples),
       m_geom_id(copy.m_geom_id), m_thick(copy.m_thick), m_height(copy.m_height),
       m_width(copy.m_width) {
@@ -407,8 +409,6 @@ int Sample::loadNexus(::NeXus::File *file, const std::string &group) {
 /**
  * Delete the oriented lattice.
  */
-void Sample::clearOrientedLattice() {
-  m_lattice.reset(nullptr);
-}
+void Sample::clearOrientedLattice() { m_lattice.reset(nullptr); }
 } // namespace API
 } // namespace Mantid

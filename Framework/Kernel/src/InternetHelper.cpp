@@ -101,8 +101,7 @@ InternetHelper::InternetHelper(const Kernel::ProxyInfo &proxy)
 //----------------------------------------------------------------------------------------------
 /** Destructor
  */
-InternetHelper::~InternetHelper() {
-}
+InternetHelper::~InternetHelper() {}
 
 void InternetHelper::setupProxyOnSession(HTTPClientSession &session,
                                          const std::string &proxyUrl) {

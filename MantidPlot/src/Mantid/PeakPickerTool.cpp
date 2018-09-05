@@ -623,8 +623,9 @@ void PeakPickerTool::endXChanged(double eX) {
 void PeakPickerTool::parameterChanged(const Mantid::API::IFunction *f) {
   boost::shared_ptr<MantidQt::MantidWidgets::PropertyHandler> theHandler =
       m_fitPropertyBrowser->getHandler();
-  boost::shared_ptr<MantidQt::MantidWidgets::PropertyHandler> h = 
-	  boost::shared_ptr<MantidQt::MantidWidgets::PropertyHandler>(theHandler->findHandler(f));
+  boost::shared_ptr<MantidQt::MantidWidgets::PropertyHandler> h =
+      boost::shared_ptr<MantidQt::MantidWidgets::PropertyHandler>(
+          theHandler->findHandler(f));
   if (!h)
     return;
   replot(h);
@@ -634,7 +635,8 @@ void PeakPickerTool::parameterChanged(const Mantid::API::IFunction *f) {
   graph()->replot();
 }
 
-void PeakPickerTool::replot(boost::shared_ptr<MantidQt::MantidWidgets::PropertyHandler> h) const {
+void PeakPickerTool::replot(
+    boost::shared_ptr<MantidQt::MantidWidgets::PropertyHandler> h) const {
   if (h->hasPlot()) {
     FunctionCurve *fc = nullptr;
     int indexForFC = -1;

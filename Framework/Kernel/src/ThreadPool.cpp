@@ -37,8 +37,8 @@ namespace Kernel {
  */
 ThreadPool::ThreadPool(ThreadScheduler *scheduler, size_t numThreads,
                        ProgressBase *prog)
-    : m_scheduler(std::unique_ptr<ThreadScheduler>(scheduler)), m_started(false), 
-	m_prog(std::unique_ptr<ProgressBase>(prog)) {
+    : m_scheduler(std::unique_ptr<ThreadScheduler>(scheduler)),
+      m_started(false), m_prog(std::unique_ptr<ProgressBase>(prog)) {
   if (!m_scheduler)
     throw std::invalid_argument(
         "NULL ThreadScheduler passed to ThreadPool constructor.");
@@ -54,8 +54,7 @@ ThreadPool::ThreadPool(ThreadScheduler *scheduler, size_t numThreads,
 //--------------------------------------------------------------------------------
 /** Destructor. Deletes the ThreadScheduler.
  */
-ThreadPool::~ThreadPool() {
-}
+ThreadPool::~ThreadPool() {}
 
 //--------------------------------------------------------------------------------
 /** Return the number of physical cores available on the system.
@@ -112,7 +111,8 @@ void ThreadPool::start(double waitSec) {
     m_threads.push_back(thread);
 
     // Make the runnable object and run it
-    auto runnable = new ThreadPoolRunnable(i, m_scheduler.get(), m_prog.get(), waitSec);
+    auto runnable =
+        new ThreadPoolRunnable(i, m_scheduler.get(), m_prog.get(), waitSec);
     m_runnables.push_back(runnable);
 
     thread->start(*runnable);

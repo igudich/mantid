@@ -38,7 +38,7 @@ ForegroundModel::ForegroundModel(const API::IFunction &fittingFunction)
 
 /**
  */
-ForegroundModel::~ForegroundModel() { }
+ForegroundModel::~ForegroundModel() {}
 
 /**
  * Set a reference to the convolved fitting function. Required as we need a
@@ -133,8 +133,8 @@ void ForegroundModel::setFormFactorIon(const std::string &ionType) {
   } else {
     using namespace PhysicalConstants;
     if (m_MagIonName != ionType) {
-      m_formFactorTable.reset(new MagneticFormFactorTable(FORM_FACTOR_TABLE_LENGTH,
-                                                      getMagneticIon(ionType)));
+      m_formFactorTable.reset(new MagneticFormFactorTable(
+          FORM_FACTOR_TABLE_LENGTH, getMagneticIon(ionType)));
       m_MagIonName = ionType;
     }
   }

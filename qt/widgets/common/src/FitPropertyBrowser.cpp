@@ -634,7 +634,8 @@ FitPropertyBrowser::~FitPropertyBrowser() { m_compositeFunction.reset(); }
 
 /// Get handler to the root composite function
 boost::shared_ptr<PropertyHandler> FitPropertyBrowser::getHandler() const {
-  return boost::dynamic_pointer_cast<PropertyHandler>(m_compositeFunction->getHandler());
+  return boost::dynamic_pointer_cast<PropertyHandler>(
+      m_compositeFunction->getHandler());
 }
 
 PropertyHandler *FitPropertyBrowser::addFunction(const std::string &fnName) {

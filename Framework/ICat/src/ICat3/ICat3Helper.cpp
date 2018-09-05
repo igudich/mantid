@@ -194,7 +194,6 @@ void CICatHelper::saveInvestigationIncludesResponse(
         }
         savetoTableWorkspace(creationtime.get(), t);
 
-
         //
         savetoTableWorkspace((*datafile_citr)->id, t);
 

@@ -251,7 +251,8 @@ QHash<QString, QString> IndirectFitPropertyBrowser::getTies() const {
  *                parameter.
  */
 void IndirectFitPropertyBrowser::getCompositeTies(
-    boost::shared_ptr<PropertyHandler> handler, QHash<QString, QString> &ties) const {
+    boost::shared_ptr<PropertyHandler> handler,
+    QHash<QString, QString> &ties) const {
   for (size_t i = 0u; i < handler->cfun()->nFunctions(); ++i) {
     auto nextHandler = handler->getHandler(i);
     if (nextHandler->cfun())
@@ -267,8 +268,9 @@ void IndirectFitPropertyBrowser::getCompositeTies(
  * @param ties    The map in which to store the tie expression under the tied
  *                parameter.
  */
-void IndirectFitPropertyBrowser::getTies(boost::shared_ptr<PropertyHandler> handler,
-                                         QHash<QString, QString> &ties) const {
+void IndirectFitPropertyBrowser::getTies(
+    boost::shared_ptr<PropertyHandler> handler,
+    QHash<QString, QString> &ties) const {
   const auto prefix = handler->functionPrefix() + ".";
   auto tieProperties = handler->getTies();
   for (const auto parameter : tieProperties.keys())
