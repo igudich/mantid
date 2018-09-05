@@ -115,10 +115,10 @@ void InternetHelper::setupProxyOnSession(HTTPClientSession &session,
 
 void InternetHelper::createRequest(Poco::URI &uri) {
 
-  m_request.reset(
-      new HTTPRequest(m_method, uri.getPathAndQuery(), HTTPMessage::HTTP_1_1));
+  m_request =
+      new HTTPRequest(m_method, uri.getPathAndQuery(), HTTPMessage::HTTP_1_1);
 
-  m_response.reset( new HTTPResponse());
+  m_response = new HTTPResponse();
   if (!m_contentType.empty()) {
     m_request->setContentType(m_contentType);
   }
@@ -620,7 +620,7 @@ void InternetHelper::reset() {
   m_body = "";
   m_method = HTTPRequest::HTTP_GET;
   m_contentType = "application/json";
-  m_request.reset(nullptr);
+  m_request = nullptr;
 }
 
 } // namespace Kernel

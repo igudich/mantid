@@ -20,8 +20,8 @@ namespace RemoteJobManagers {
 std::vector<Poco::Net::HTTPCookie> MantidWebServiceAPIHelper::g_cookies;
 
 MantidWebServiceAPIHelper::MantidWebServiceAPIHelper()
-    : m_session(std::unique_ptr<Poco::Net::HTTPClientSession>(
-          nullptr)) // Make sure this is always either NULL or a valid pointer.
+    : m_session(
+          nullptr) // Make sure this is always either NULL or a valid pointer.
 {
   // TODO: the job manager factory or someone else should set this, and then
   // this class would be usable with any other compute resource that implements
@@ -181,7 +181,7 @@ void MantidWebServiceAPIHelper::initHTTPRequest(Poco::Net::HTTPRequest &req,
                                                 std::string queryString) const {
   // Set up the session object
 
-  m_session.reset(nullptr);
+  m_session = nullptr;
 
   if (Poco::URI(m_serviceBaseUrl).getScheme() == "https") {
     // Create an HTTPS session
@@ -192,15 +192,15 @@ void MantidWebServiceAPIHelper::initHTTPRequest(Poco::Net::HTTPRequest &req,
         new Poco::Net::Context(Poco::Net::Context::CLIENT_USE, "", "", "",
                                Poco::Net::Context::VERIFY_NONE, 9, false,
                                "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
-    m_session.reset(new Poco::Net::HTTPSClientSession(
+    m_session = new Poco::Net::HTTPSClientSession(
         Poco::URI(m_serviceBaseUrl).getHost(),
-        Poco::URI(m_serviceBaseUrl).getPort(), context));
+        Poco::URI(m_serviceBaseUrl).getPort(), context);
   } else {
     // Create a regular HTTP client session.  (NOTE: Using unencrypted HTTP is a
     // really bad idea! We'll be sending passwords in the clear!)
-    m_session.reset(
+    m_session =
         new Poco::Net::HTTPClientSession(Poco::URI(m_serviceBaseUrl).getHost(),
-                                         Poco::URI(m_serviceBaseUrl).getPort()));
+                                         Poco::URI(m_serviceBaseUrl).getPort());
   }
 
   Poco::URI uri(m_serviceBaseUrl);
