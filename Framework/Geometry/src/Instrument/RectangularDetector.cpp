@@ -628,7 +628,7 @@ void RectangularDetector::getBoundingBox(BoundingBox &assemblyBox) const {
     }
   }
   if (!m_cachedBoundingBox) {
-    m_cachedBoundingBox = new BoundingBox();
+    m_cachedBoundingBox = std::make_shared<BoundingBox>();
     // Get all the corner
     BoundingBox compBox;
     getAtXY(0, 0)->getBoundingBox(compBox);

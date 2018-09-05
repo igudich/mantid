@@ -54,7 +54,7 @@ void LevenbergMarquardtMinimizer::initialize(
       boost::dynamic_pointer_cast<CostFunctions::CostFuncLeastSquares>(
           costFunction);
   if (leastSquares) {
-    m_data = new GSL_FitData(leastSquares);
+    m_data.reset(new GSL_FitData(leastSquares));
   } else {
     throw std::runtime_error("LevenbergMarquardt can only be used with Least "
                              "squares cost function.");
@@ -69,7 +69,7 @@ void LevenbergMarquardtMinimizer::initialize(
   gslContainer.fdf = &gsl_fdf;
   gslContainer.n = m_data->n;
   gslContainer.p = m_data->p;
-  gslContainer.params = m_data;
+  gslContainer.params = m_data.get();
 
   // setup GSL solver
   m_gslSolver = gsl_multifit_fdfsolver_alloc(T, m_data->n, m_data->p);
@@ -86,8 +86,6 @@ void LevenbergMarquardtMinimizer::initialize(
 }
 
 LevenbergMarquardtMinimizer::~LevenbergMarquardtMinimizer() {
-
-  delete m_data;
 
   if (m_gslSolver) {
     gsl_multifit_fdfsolver_free(m_gslSolver);

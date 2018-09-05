@@ -184,17 +184,16 @@ void CICatHelper::saveInvestigationIncludesResponse(
         savetoTableWorkspace((*datafile_citr)->location, t);
 
         // File creation Time.
-        std::string *creationtime = nullptr;
+        std::unique_ptr<std::string> creationtime = nullptr;
         if ((*datafile_citr)->datafileCreateTime != nullptr) {
           time_t crtime = *(*datafile_citr)->datafileCreateTime;
           char temp[25];
           strftime(temp, 25, "%Y-%b-%d %H:%M:%S", localtime(&crtime));
           std::string ftime(temp);
-          creationtime = new std::string;
           creationtime->assign(ftime);
         }
-        savetoTableWorkspace(creationtime, t);
-        delete creationtime;
+        savetoTableWorkspace(creationtime.get(), t);
+
 
         //
         savetoTableWorkspace((*datafile_citr)->id, t);

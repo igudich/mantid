@@ -37,10 +37,11 @@ public:
 
   QHash<QString, QString> getTies() const;
 
-  void getCompositeTies(PropertyHandler *handler,
+  void getCompositeTies(boost::shared_ptr<PropertyHandler> handler,
                         QHash<QString, QString> &ties) const;
 
-  void getTies(PropertyHandler *handler, QHash<QString, QString> &ties) const;
+  void getTies(boost::shared_ptr<PropertyHandler> handler,
+			   QHash<QString, QString> &ties) const;
 
   size_t numberOfCustomFunctions(const std::string &functionName) const;
 

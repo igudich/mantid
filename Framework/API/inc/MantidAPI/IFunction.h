@@ -549,7 +549,7 @@ public:
   /// Set a function handler
   void setHandler(FunctionHandler *handler);
   /// Return the handler
-  FunctionHandler *getHandler() const { return m_handler; }
+  boost::shared_ptr<FunctionHandler> getHandler() const { return m_handler; }
 
   /// Describe parameter status in relation to fitting:
   /// Active: Fit varies such parameter directly.
@@ -610,7 +610,7 @@ protected:
   bool m_isParallel;
 
   /// Pointer to a function handler
-  FunctionHandler *m_handler;
+  boost::shared_ptr<FunctionHandler> m_handler;
 
   /// Pointer to the progress handler
   boost::shared_ptr<Kernel::ProgressBase> m_progReporter;

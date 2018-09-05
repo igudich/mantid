@@ -1329,7 +1329,7 @@ void MuonFitPropertyBrowser::continueAfterChecks(bool sequential) {
  * @returns :: True if a plot guess is plotted, false if not.
  */
 bool MuonFitPropertyBrowser::hasGuess() const {
-  auto *handler = getHandler();
+  auto handler = getHandler();
   if (handler) {
     const bool hasPlot = handler->hasPlot(); // don't allow caller to modify
     return hasPlot;

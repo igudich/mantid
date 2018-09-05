@@ -420,9 +420,9 @@ void LoadNexusMonitors2::runLoadLogs(const std::string filename,
  **/
 bool LoadNexusMonitors2::canOpenAsNeXus(const std::string &fname) {
   bool res = true;
-  ::NeXus::File *f = nullptr;
+  std::unique_ptr<::NeXus::File> f = nullptr;
   try {
-    f = new ::NeXus::File(fname);
+    f.reset(new ::NeXus::File(fname));
     if (f)
       f->getEntries();
   } catch (::NeXus::Exception &e) {
@@ -430,7 +430,7 @@ bool LoadNexusMonitors2::canOpenAsNeXus(const std::string &fname) {
                   << "', error description: " << e.what() << '\n';
     res = false;
   }
-  delete f;
+
   return res;
 }
 

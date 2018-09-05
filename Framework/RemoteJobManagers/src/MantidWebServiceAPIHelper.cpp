@@ -20,8 +20,8 @@ namespace RemoteJobManagers {
 std::vector<Poco::Net::HTTPCookie> MantidWebServiceAPIHelper::g_cookies;
 
 MantidWebServiceAPIHelper::MantidWebServiceAPIHelper()
-    : m_session(
-          nullptr) // Make sure this is always either NULL or a valid pointer.
+    : m_session(std::unique_ptr<Poco::Net::HTTPClientSession>(
+          nullptr)) // Make sure this is always either NULL or a valid pointer.
 {
   // TODO: the job manager factory or someone else should set this, and then
   // this class would be usable with any other compute resource that implements
@@ -33,7 +33,7 @@ MantidWebServiceAPIHelper::MantidWebServiceAPIHelper()
   m_serviceBaseUrl = "https://fermi.ornl.gov/MantidRemote";
 }
 
-MantidWebServiceAPIHelper::~MantidWebServiceAPIHelper() { delete m_session; }
+MantidWebServiceAPIHelper::~MantidWebServiceAPIHelper() {}
 
 std::istream &MantidWebServiceAPIHelper::httpGet(
     const std::string &path, const std::string &query_str,
@@ -180,8 +180,8 @@ void MantidWebServiceAPIHelper::initHTTPRequest(Poco::Net::HTTPRequest &req,
                                                 std::string extraPath,
                                                 std::string queryString) const {
   // Set up the session object
-  delete m_session;
-  m_session = nullptr;
+
+  m_session.reset(nullptr);
 
   if (Poco::URI(m_serviceBaseUrl).getScheme() == "https") {
     // Create an HTTPS session
@@ -192,15 +192,15 @@ void MantidWebServiceAPIHelper::initHTTPRequest(Poco::Net::HTTPRequest &req,
         new Poco::Net::Context(Poco::Net::Context::CLIENT_USE, "", "", "",
                                Poco::Net::Context::VERIFY_NONE, 9, false,
                                "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
-    m_session = new Poco::Net::HTTPSClientSession(
+    m_session.reset(new Poco::Net::HTTPSClientSession(
         Poco::URI(m_serviceBaseUrl).getHost(),
-        Poco::URI(m_serviceBaseUrl).getPort(), context);
+        Poco::URI(m_serviceBaseUrl).getPort(), context));
   } else {
     // Create a regular HTTP client session.  (NOTE: Using unencrypted HTTP is a
     // really bad idea! We'll be sending passwords in the clear!)
-    m_session =
+    m_session.reset(
         new Poco::Net::HTTPClientSession(Poco::URI(m_serviceBaseUrl).getHost(),
-                                         Poco::URI(m_serviceBaseUrl).getPort());
+                                         Poco::URI(m_serviceBaseUrl).getPort()));
   }
 
   Poco::URI uri(m_serviceBaseUrl);

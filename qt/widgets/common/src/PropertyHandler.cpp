@@ -433,7 +433,7 @@ PropertyHandler *PropertyHandler::addFunction(const std::string &fnName) {
 // Removes handled function from its parent function and
 // properties from the browser
 void PropertyHandler::removeFunction() {
-  PropertyHandler *ph = parentHandler();
+  boost::shared_ptr<PropertyHandler> ph = parentHandler();
   if (ph) {
     if (this == m_browser->m_autoBackground) {
       m_browser->m_autoBackground = nullptr;
@@ -470,7 +470,7 @@ void PropertyHandler::renameChildren() const {
     return;
   // rename children
   for (size_t i = 0; i < m_cf->nFunctions(); i++) {
-    PropertyHandler *h = getHandler(i);
+	boost::shared_ptr<PropertyHandler> h = getHandler(i);
     if (!h)
       continue;
     QtProperty *nameProp = h->item()->property();
@@ -492,7 +492,7 @@ QString PropertyHandler::functionName() const {
 }
 
 QString PropertyHandler::functionPrefix() const {
-  PropertyHandler *ph = parentHandler();
+  boost::shared_ptr<PropertyHandler> ph = parentHandler();
   if (ph) {
     int iFun = -1;
     Mantid::API::CompositeFunction_sptr cf = ph->cfun();
@@ -511,18 +511,18 @@ QString PropertyHandler::functionPrefix() const {
 }
 
 // Return the parent handler
-PropertyHandler *PropertyHandler::parentHandler() const {
+boost::shared_ptr<PropertyHandler> PropertyHandler::parentHandler() const {
   if (!m_parent)
     return nullptr;
-  PropertyHandler *ph = static_cast<PropertyHandler *>(m_parent->getHandler());
+  boost::shared_ptr<PropertyHandler> ph = boost::dynamic_pointer_cast<PropertyHandler>(m_parent->getHandler());
   return ph;
 }
 // Return the child's handler
-PropertyHandler *PropertyHandler::getHandler(std::size_t i) const {
+boost::shared_ptr<PropertyHandler> PropertyHandler::getHandler(std::size_t i) const {
   if (!m_cf || i >= m_cf->nFunctions())
     return nullptr;
-  PropertyHandler *ph =
-      static_cast<PropertyHandler *>(m_cf->getFunction(i)->getHandler());
+  boost::shared_ptr<PropertyHandler> ph = 
+boost::dynamic_pointer_cast<PropertyHandler>(m_cf->getFunction(i)->getHandler());
   return ph;
 }
 /** Returns 'this' if item == m_item and this is a composite function or
@@ -811,7 +811,7 @@ void PropertyHandler::setAttribute(const QString &attName,
   }
   if (cfun()) {
     for (size_t i = 0; i < cfun()->nFunctions(); ++i) {
-      PropertyHandler *h = getHandler(i);
+		boost::shared_ptr<PropertyHandler> h = getHandler(i);
       h->setAttribute(attName, attValue);
     }
   }
@@ -1222,7 +1222,7 @@ void PropertyHandler::calcBaseAll() {
   if (!m_cf)
     return;
   for (size_t i = 0; i < m_cf->nFunctions(); ++i) {
-    PropertyHandler *h = getHandler(i);
+	boost::shared_ptr<PropertyHandler> h = getHandler(i);
     if (h->pfun()) {
       h->calcBase();
     } else if (h->cfun()) {
@@ -1397,11 +1397,11 @@ QList<PropertyHandler *> PropertyHandler::getPeakList() {
   }
   if (m_cf) {
     for (size_t i = 0; i < m_cf->nFunctions(); ++i) {
-      PropertyHandler *h = getHandler(i);
+	  boost::shared_ptr<PropertyHandler> h = getHandler(i);
       if (!h)
         continue;
       if (h->pfun()) {
-        res << h;
+        res << h.get();
       } else if (h->cfun()) {
         res << h->getPeakList();
       }

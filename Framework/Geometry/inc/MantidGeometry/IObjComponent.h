@@ -105,7 +105,7 @@ public:
   virtual const Kernel::Material material() const = 0;
 
   /// Gets the GeometryHandler
-  GeometryHandler *Handle() const { return handle; }
+  GeometryHandler *Handle() const { return handle.get(); }
 
 protected:
   /// Reset the current geometry handler
@@ -113,7 +113,7 @@ protected:
 
 private:
   /// Geometry Handle for rendering
-  GeometryHandler *handle;
+  std::unique_ptr<GeometryHandler> handle;
 
   friend class GeometryHandler;
 };

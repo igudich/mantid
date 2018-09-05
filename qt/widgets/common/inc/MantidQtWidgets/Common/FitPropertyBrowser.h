@@ -64,7 +64,7 @@ public:
   /// Destructor
   ~FitPropertyBrowser() override;
   /// Get handler to the root composite function
-  PropertyHandler *getHandler() const;
+  boost::shared_ptr<PropertyHandler> getHandler() const;
   /// Initialise layout
   virtual void init();
 

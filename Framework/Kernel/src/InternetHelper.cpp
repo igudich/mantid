@@ -102,8 +102,6 @@ InternetHelper::InternetHelper(const Kernel::ProxyInfo &proxy)
 /** Destructor
  */
 InternetHelper::~InternetHelper() {
-  delete m_request;
-  delete m_response;
 }
 
 void InternetHelper::setupProxyOnSession(HTTPClientSession &session,
@@ -116,13 +114,11 @@ void InternetHelper::setupProxyOnSession(HTTPClientSession &session,
 }
 
 void InternetHelper::createRequest(Poco::URI &uri) {
-  delete m_request;
-  delete m_response;
 
-  m_request =
-      new HTTPRequest(m_method, uri.getPathAndQuery(), HTTPMessage::HTTP_1_1);
+  m_request.reset(
+      new HTTPRequest(m_method, uri.getPathAndQuery(), HTTPMessage::HTTP_1_1));
 
-  m_response = new HTTPResponse();
+  m_response.reset( new HTTPResponse());
   if (!m_contentType.empty()) {
     m_request->setContentType(m_contentType);
   }
@@ -624,7 +620,7 @@ void InternetHelper::reset() {
   m_body = "";
   m_method = HTTPRequest::HTTP_GET;
   m_contentType = "application/json";
-  m_request = nullptr;
+  m_request.reset(nullptr);
 }
 
 } // namespace Kernel

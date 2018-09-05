@@ -633,8 +633,8 @@ void FitPropertyBrowser::executeSetupManageMenu(const QString &item) {
 FitPropertyBrowser::~FitPropertyBrowser() { m_compositeFunction.reset(); }
 
 /// Get handler to the root composite function
-PropertyHandler *FitPropertyBrowser::getHandler() const {
-  return static_cast<PropertyHandler *>(m_compositeFunction->getHandler());
+boost::shared_ptr<PropertyHandler> FitPropertyBrowser::getHandler() const {
+  return boost::dynamic_pointer_cast<PropertyHandler>(m_compositeFunction->getHandler());
 }
 
 PropertyHandler *FitPropertyBrowser::addFunction(const std::string &fnName) {
@@ -645,7 +645,7 @@ PropertyHandler *FitPropertyBrowser::addFunction(const std::string &fnName) {
 
 void FitPropertyBrowser::removeFunction(PropertyHandler *handler) {
   if (handler) {
-    emit removePlotSignal(getHandler());
+    emit removePlotSignal(getHandler().get());
     handler->removeFunction();
     compositeFunction()->checkFunction();
     emit functionRemoved();

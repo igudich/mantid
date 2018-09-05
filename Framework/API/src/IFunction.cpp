@@ -62,8 +62,6 @@ struct TieNode {
  */
 IFunction::~IFunction() {
   m_attrs.clear();
-  delete m_handler;
-  m_handler = nullptr;
 }
 
 /**
@@ -510,7 +508,7 @@ std::vector<std::string> IFunction::getParameterNames() const {
  * @param handler :: A new handler
  */
 void IFunction::setHandler(FunctionHandler *handler) {
-  m_handler = handler;
+  m_handler = boost::shared_ptr<FunctionHandler>(handler);
   if (handler && handler->function().get() != this) {
     throw std::runtime_error("Function handler points to a different function");
   }

@@ -28,7 +28,7 @@ using Geometry::ShapeFactory;
  */
 Sample::Sample()
     : m_name(), m_shape(ShapeFactory().createShape("")), m_environment(),
-      m_lattice(nullptr), m_crystalStructure(), m_samples(), m_geom_id(0),
+      m_lattice(std::unique_ptr<Geometry::OrientedLattice>(nullptr)), m_crystalStructure(), m_samples(), m_geom_id(0),
       m_thick(0.0), m_height(0.0), m_width(0.0) {}
 
 /**
@@ -37,12 +37,12 @@ Sample::Sample()
  */
 Sample::Sample(const Sample &copy)
     : m_name(copy.m_name), m_shape(copy.m_shape),
-      m_environment(copy.m_environment), m_lattice(nullptr),
+      m_environment(copy.m_environment), m_lattice(std::unique_ptr<Geometry::OrientedLattice>(nullptr)),
       m_crystalStructure(), m_samples(copy.m_samples),
       m_geom_id(copy.m_geom_id), m_thick(copy.m_thick), m_height(copy.m_height),
       m_width(copy.m_width) {
   if (copy.m_lattice)
-    m_lattice = new OrientedLattice(copy.getOrientedLattice());
+    m_lattice.reset(new OrientedLattice(copy.getOrientedLattice()));
 
   if (copy.hasCrystalStructure()) {
     m_crystalStructure.reset(
@@ -51,7 +51,7 @@ Sample::Sample(const Sample &copy)
 }
 
 /// Destructor
-Sample::~Sample() { delete m_lattice; }
+Sample::~Sample() {}
 
 /** Assignment operator
  * @param rhs :: const reference to the sample object
@@ -69,11 +69,11 @@ Sample &Sample::operator=(const Sample &rhs) {
   m_thick = rhs.m_thick;
   m_height = rhs.m_height;
   m_width = rhs.m_width;
-  delete m_lattice;
+
   if (rhs.m_lattice)
-    m_lattice = new OrientedLattice(rhs.getOrientedLattice());
+    m_lattice.reset(new OrientedLattice(rhs.getOrientedLattice()));
   else
-    m_lattice = nullptr;
+    m_lattice.reset(nullptr);
 
   m_crystalStructure.reset();
   if (rhs.hasCrystalStructure()) {
@@ -172,11 +172,11 @@ OrientedLattice &Sample::getOrientedLattice() {
  * @param latt :: A pointer to a OrientedLattice.
  */
 void Sample::setOrientedLattice(OrientedLattice *latt) {
-  delete m_lattice;
+
   if (latt != nullptr)
-    m_lattice = new OrientedLattice(*latt);
+    m_lattice.reset(new OrientedLattice(*latt));
   else
-    m_lattice = nullptr;
+    m_lattice.reset(nullptr);
 }
 
 /** @return true if the sample has an OrientedLattice  */
@@ -385,7 +385,7 @@ int Sample::loadNexus(::NeXus::File *file, const std::string &group) {
     int num_oriented_lattice;
     file->readData("num_oriented_lattice", num_oriented_lattice);
     if (num_oriented_lattice > 0) {
-      m_lattice = new OrientedLattice;
+      m_lattice.reset(new OrientedLattice);
       m_lattice->loadNexus(file, "oriented_lattice");
     }
   }
@@ -408,8 +408,7 @@ int Sample::loadNexus(::NeXus::File *file, const std::string &group) {
  * Delete the oriented lattice.
  */
 void Sample::clearOrientedLattice() {
-  delete m_lattice;
-  m_lattice = nullptr;
+  m_lattice.reset(nullptr);
 }
 } // namespace API
 } // namespace Mantid

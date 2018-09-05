@@ -139,7 +139,7 @@ private slots:
 
 private:
   void plotFitFunction(MantidQt::MantidWidgets::PropertyHandler *h);
-  void replot(MantidQt::MantidWidgets::PropertyHandler *h) const;
+  void replot(boost::shared_ptr<MantidQt::MantidWidgets::PropertyHandler> h) const;
 
   void draw(QPainter *p, const QwtScaleMap &xMap, const QwtScaleMap &yMap,
             const QRect &) const override;

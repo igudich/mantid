@@ -71,9 +71,9 @@ public:
   // Return the browser item
   QtBrowserItem *item() const { return m_item; }
   // Return the parent handler
-  PropertyHandler *parentHandler() const;
+  boost::shared_ptr<PropertyHandler> parentHandler() const;
   // Return the child's handler
-  PropertyHandler *getHandler(std::size_t i) const;
+  boost::shared_ptr<PropertyHandler> getHandler(std::size_t i) const;
   /** Returns 'this' if item == m_item and this is a composite function or
    * calls findCompositeFunction recursively with all its children or
    * zero

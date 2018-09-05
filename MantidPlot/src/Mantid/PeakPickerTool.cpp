@@ -326,7 +326,7 @@ void PeakPickerTool::functionCleared() { d_graph->plotWidget()->replot(); }
 void PeakPickerTool::draw(QPainter *p, const QwtScaleMap &xMap,
                           const QwtScaleMap &yMap, const QRect &) const {
   try {
-    MantidQt::MantidWidgets::PropertyHandler *h =
+    boost::shared_ptr<MantidQt::MantidWidgets::PropertyHandler> h =
         m_fitPropertyBrowser->getHandler();
     if (!h)
       return;
@@ -621,9 +621,10 @@ void PeakPickerTool::endXChanged(double eX) {
  * @param f :: The pointer to the function with the changed parameter
  */
 void PeakPickerTool::parameterChanged(const Mantid::API::IFunction *f) {
-  MantidQt::MantidWidgets::PropertyHandler *theHandler =
+  boost::shared_ptr<MantidQt::MantidWidgets::PropertyHandler> theHandler =
       m_fitPropertyBrowser->getHandler();
-  MantidQt::MantidWidgets::PropertyHandler *h = theHandler->findHandler(f);
+  boost::shared_ptr<MantidQt::MantidWidgets::PropertyHandler> h = 
+	  boost::shared_ptr<MantidQt::MantidWidgets::PropertyHandler>(theHandler->findHandler(f));
   if (!h)
     return;
   replot(h);
@@ -633,7 +634,7 @@ void PeakPickerTool::parameterChanged(const Mantid::API::IFunction *f) {
   graph()->replot();
 }
 
-void PeakPickerTool::replot(MantidQt::MantidWidgets::PropertyHandler *h) const {
+void PeakPickerTool::replot(boost::shared_ptr<MantidQt::MantidWidgets::PropertyHandler> h) const {
   if (h->hasPlot()) {
     FunctionCurve *fc = nullptr;
     int indexForFC = -1;
@@ -851,9 +852,9 @@ void PeakPickerTool::setToolTip(const QString &txt) {
  * Slot. Plot the initial guess for the function
  */
 void PeakPickerTool::plotGuess() {
-  MantidQt::MantidWidgets::PropertyHandler *h =
+  boost::shared_ptr<MantidQt::MantidWidgets::PropertyHandler> h =
       m_fitPropertyBrowser->getHandler();
-  plotFitFunction(h);
+  plotFitFunction(h.get());
   h->hasPlot() = true;
   d_graph->replot();
 }
@@ -901,7 +902,7 @@ void PeakPickerTool::plotFitFunction(
       // from Graph
       d_graph->insertCurve(fc);
       connect(fc, SIGNAL(forgetMe()), h, SLOT(plotRemoved()));
-      if (h == m_fitPropertyBrowser->getHandler()) {
+      if (h == m_fitPropertyBrowser->getHandler().get()) {
         m_fitPropertyBrowser->setTextPlotGuess("Remove guess");
       }
     }
@@ -912,9 +913,9 @@ void PeakPickerTool::plotFitFunction(
  * Slot. Remove the plot of the i-th function
  */
 void PeakPickerTool::removeGuess() {
-  MantidQt::MantidWidgets::PropertyHandler *h =
+  boost::shared_ptr<MantidQt::MantidWidgets::PropertyHandler> h =
       m_fitPropertyBrowser->getHandler();
-  removePlot(h);
+  removePlot(h.get());
   h->hasPlot() = false;
   d_graph->replot();
 }
@@ -935,7 +936,7 @@ void PeakPickerTool::removePlot(MantidQt::MantidWidgets::PropertyHandler *h) {
 
   if (indexForFC >= 0) {
     fc->removeMe();
-    if (h == m_fitPropertyBrowser->getHandler()) {
+    if (h == m_fitPropertyBrowser->getHandler().get()) {
       m_fitPropertyBrowser->setTextPlotGuess("Plot guess");
     }
   }

@@ -849,7 +849,7 @@ void Instrument::getBoundingBox(BoundingBox &assemblyBox) const {
   } else {
 
     if (!m_cachedBoundingBox) {
-      m_cachedBoundingBox = new BoundingBox();
+      m_cachedBoundingBox = std::make_shared<BoundingBox>();
       ComponentID sourceID = getSource()->getComponentID();
       // Loop over the children and define a box large enough for all of them
       for (auto component : m_children) {
