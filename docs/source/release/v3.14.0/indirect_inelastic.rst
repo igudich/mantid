@@ -15,7 +15,7 @@ Data Analysis Interface
 -----------------------
 
 Improvements
-########
+############
 - The workspace(s) loaded into F(Q) Fit are checked for EISF or Width values, and an error message is displayed
   if neither are present. This prevents an unexpected crash.
 
