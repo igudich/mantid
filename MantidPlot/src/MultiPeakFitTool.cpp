@@ -50,7 +50,7 @@ MultiPeakFitTool::MultiPeakFitTool(Graph *graph, ApplicationWindow *app,
   d_selected_peaks = 0;
   d_curve = nullptr;
 
-  d_fit = new MultiPeakFit(app, d_graph, d_profile, d_num_peaks);
+  d_fit = std::make_unique<MultiPeakFit>(app, d_graph, d_profile, d_num_peaks);
   d_fit->enablePeakCurves(app->generatePeakCurves);
   d_fit->setPeakCurvesColor(app->peakCurvesColor);
   d_fit->generateFunction(app->generateUniformFitPoints, app->fitPoints);
@@ -75,7 +75,6 @@ MultiPeakFitTool::MultiPeakFitTool(Graph *graph, ApplicationWindow *app,
 MultiPeakFitTool::~MultiPeakFitTool() {
 
   delete d_picker_tool;
-  delete d_fit;
 }
 
 void MultiPeakFitTool::selectPeak(QwtPlotCurve *curve, int point_index) {
@@ -142,8 +141,7 @@ void MultiPeakFitTool::finalize() {
     }
 
     d_fit->fit();
-    delete d_fit;
-    d_fit = nullptr;
+    d_fit.reset(nullptr);
     QApplication::restoreOverrideCursor();
   }
 

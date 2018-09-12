@@ -73,7 +73,7 @@ private:
   MultiPeakFit::PeakProfile d_profile;
   int d_num_peaks, d_selected_peaks;
   DataPickerTool *d_picker_tool;
-  MultiPeakFit *d_fit;
+  std::unique_ptr<MultiPeakFit> d_fit;
   QwtPlotCurve *d_curve;
 };
 

@@ -1571,9 +1571,7 @@ void PlotDialog::removeSelectedCurve() {
     graph->updatePlot();
 
     int index = item->parent()->indexOfChild(item);
-    QTreeWidgetItem *it = item->parent()->takeChild(index);
-
-    delete it;
+    std::unique_ptr<QTreeWidgetItem> it = std::unique_ptr<QTreeWidgetItem>(item->parent()->takeChild(index));
   }
 }
 
