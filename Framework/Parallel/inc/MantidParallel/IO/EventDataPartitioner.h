@@ -53,7 +53,7 @@ public:
                          const Chunker::LoadRange &range) = 0;
 
   virtual Types::Core::DateAndTime next() = 0;
-
+  virtual void setEventOffset(const size_t event) = 0;
 protected:
   const int m_numWorkers;
 };
@@ -74,6 +74,7 @@ public:
                  const Chunker::LoadRange &range) override;
 
   Types::Core::DateAndTime next() override { return m_pulseTimes.next(); }
+  void setEventOffset(const size_t event) override { m_pulseTimes.seek(event); };
 private:
   PulseTimeGenerator<IndexType, TimeZeroType> m_pulseTimes;
 };
