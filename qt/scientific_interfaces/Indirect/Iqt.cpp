@@ -3,6 +3,7 @@
 
 #include "MantidAPI/ITableWorkspace.h"
 #include "MantidGeometry/Instrument.h"
+#include "MantidQtWidgets/Common/SignalBlocker.h"
 #include "MantidQtWidgets/LegacyQwt/RangeSelector.h"
 
 #include <qwt_plot.h>
@@ -131,6 +132,11 @@ void Iqt::setup() {
           SLOT(plotCurrentPreview()));
   connect(m_uiForm.cbCalculateErrors, SIGNAL(clicked()), this,
           SLOT(errorsClicked()));
+
+  connect(m_uiForm.spTiledPlotFirst, SIGNAL(valueChanged(int)), this,
+          SLOT(setTiledPlotRangeMinMax(int)));
+  connect(m_uiForm.spTiledPlotLast, SIGNAL(valueChanged(int)), this,
+          SLOT(setTiledPlotRangeMax(int)));
 }
 
 void Iqt::run() {
@@ -185,6 +191,9 @@ void Iqt::algorithmComplete(bool error) {
     setPlotResultEnabled(true);
     setTiledPlotEnabled(true);
     setSaveResultEnabled(true);
+
+    setPlotSpectrumIndexMax(getNumberOfSpectra() - 1);
+    setPlotSpectrumIndex(selectedSpectrum());
   }
 }
 /**
@@ -202,7 +211,8 @@ void Iqt::saveClicked() {
 void Iqt::plotClicked() {
   checkADSForPlotSaveWorkspace(m_pythonExportWsName, false);
   setPlotResultIsPlotting(true);
-  plotSpectrum(QString::fromStdString(m_pythonExportWsName));
+  plotSpectrum(QString::fromStdString(m_pythonExportWsName),
+               getPlotSpectrumIndex());
   setPlotResultIsPlotting(false);
 }
 
@@ -458,14 +468,54 @@ void Iqt::updateRS(QtProperty *prop, double val) {
     xRangeSelector->setMaximum(val);
 }
 
+// void Iqt::setTiledPlotMinimum(std::size_t value) {
+//	MantidQt::API::SignalBlocker<QObject>
+// blocker(m_uiForm.spTiledPlotFirst);
+//	m_uiForm->spTiledPlotFirst->setValue(boost::numeric_cast<int>(value));
+//}
+
+// void Iqt::setTiledPlotMaximum(std::size_t value) {
+//	MantidQt::API::SignalBlocker<QObject> blocker(m_uiForm.spTiledPlotLast);
+//	m_uiForm->spTiledPlotLast->setValue(boost::numeric_cast<int>(value));
+//}
+
+void Iqt::setTiledPlotRangeMin(int value) {
+  MantidQt::API::SignalBlocker<QObject> blocker(m_uiForm.spTiledPlotLast);
+  m_uiForm.spTiledPlotFirst->setMinimum(value);
+  m_uiForm.spTiledPlotLast->setMinimum(value);
+}
+
+void Iqt::setTiledPlotRangeMax(int value) {
+  MantidQt::API::SignalBlocker<QObject> blocker(m_uiForm.spTiledPlotFirst);
+  m_uiForm.spTiledPlotFirst->setMaximum(value);
+  m_uiForm.spTiledPlotLast->setMaximum(value);
+}
+
+void Iqt::setPlotSpectrumIndexMax(int maximum) {
+  MantidQt::API::SignalBlocker<QObject> blocker(m_uiForm.spSpectrum);
+  m_uiForm.spSpectrum->setMaximum(maximum);
+}
+
+void Iqt::setPlotSpectrumIndex(int spectrum) {
+  MantidQt::API::SignalBlocker<QObject> blocker(m_uiForm.spSpectrum);
+  m_uiForm.spSpectrum->setValue(boost::numeric_cast<int>(spectrum));
+}
+
+int Iqt::getPlotSpectrumIndex() {
+  return boost::numeric_cast<int>(m_uiForm.spSpectrum->text());
+}
+
 void Iqt::setRunEnabled(bool enabled) { m_uiForm.pbRun->setEnabled(enabled); }
 
 void Iqt::setPlotResultEnabled(bool enabled) {
   m_uiForm.pbPlot->setEnabled(enabled);
+  m_uiForm.spSpectrum->setEnabled(enabled);
 }
 
 void Iqt::setTiledPlotEnabled(bool enabled) {
   m_uiForm.pbTile->setEnabled(enabled);
+  m_uiForm.spTiledPlotFirst->setEnabled(enabled);
+  m_uiForm.spTiledPlotLast->setEnabled(enabled);
 }
 
 void Iqt::setSaveResultEnabled(bool enabled) {
@@ -478,7 +528,7 @@ void Iqt::setRunIsRunning(bool running) {
 }
 
 void Iqt::setPlotResultIsPlotting(bool plotting) {
-  m_uiForm.pbPlot->setText(plotting ? "Plotting..." : "Plot Result");
+  m_uiForm.pbPlot->setText(plotting ? "Plotting..." : "Plot Spectrum");
   setPlotResultEnabled(!plotting);
 }
 

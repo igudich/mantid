@@ -211,7 +211,7 @@
           <item>
            <widget class="QGroupBox" name="gbOutput">
             <property name="title">
-             <string>Output Options</string>
+             <string>Output</string>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout">
              <item>

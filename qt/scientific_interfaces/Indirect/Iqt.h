@@ -30,6 +30,10 @@ private:
   void setPlotResultIsPlotting(bool plotting);
   void setTiledPlotIsPlotting(bool plotting);
 
+  void setPlotSpectrumIndexMax(int maximum);
+  void setPlotSpectrumIndex(int value);
+  int getPlotSpectrumIndex();
+
 private slots:
   void algorithmComplete(bool error);
   void plotInput(const QString &wsname);
@@ -37,6 +41,8 @@ private slots:
   void updateRS(QtProperty *prop, double val);
   void updatePropertyValues(QtProperty *prop, double val);
   void updateDisplayedBinParameters();
+  void setTiledPlotRangeMin(int value);
+  void setTiledPlotRangeMax(int value);
   void runClicked();
   void saveClicked();
   void plotClicked();
