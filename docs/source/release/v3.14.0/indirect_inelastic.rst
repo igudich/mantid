@@ -36,6 +36,9 @@ Improvements
   data point to plot.
 - An option to skip the calculation of Monte Carlo Errors on the I(Q,t) Tab has been added.
 - During the calculation of Monte Carlo Errors, a progress bar is now shown.
+- In the I(Q,t) Tab, it is now possible to select which spectrum you want to plot for Plot Spectrum.
+- In the I(Q,t) Tab, it is now possible to select a range of spectra for a Tiled Plot. The interface allows a
+  maximum of 18 plots.
 
 Bugfixes
 ########
