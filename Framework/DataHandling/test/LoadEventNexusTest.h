@@ -201,7 +201,7 @@ private:
   }
 
 public:
-#ifndef _WIN32
+#ifdef _WIN32
   bool windows = true;
 #else
   bool windows = false;
@@ -219,6 +219,8 @@ public:
       run_multiprocess_load("LARMOR00003368.nxs", false);
     }
   }
+
+  void test_empty(){}
 
   void test_SingleBank_PixelsOnlyInThatBank() { doTestSingleBank(true, false); }
 
@@ -935,7 +937,7 @@ private:
 
 class LoadEventNexusTestPerformance : public CxxTest::TestSuite {
 public:
-#ifndef _WIN32
+#ifdef _WIN32
   bool windows = true;
 #else
   bool windows = false;
