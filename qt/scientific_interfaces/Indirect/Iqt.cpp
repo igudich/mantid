@@ -565,8 +565,6 @@ void Iqt::setSaveResultEnabled(bool enabled) {
 void Iqt::setRunIsRunning(bool running) {
   m_uiForm.pbRun->setText(running ? "Running..." : "Run");
   setRunEnabled(!running);
-  setPlotResultEnabled(!running);
-  setTiledPlotEnabled(!running);
 }
 
 void Iqt::setPlotResultIsPlotting(bool plotting) {
