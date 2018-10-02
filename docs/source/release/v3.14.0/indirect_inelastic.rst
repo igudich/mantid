@@ -27,7 +27,7 @@ Improvements
 ############
 
 - The workspace(s) loaded into F(Q) Fit are checked for EISF or Width values, and an error message is displayed
-  if neither are present. This prevents an unexpected crash.
+  if neither are present. This check prevents an unexpected crash.
 - The Run button in the Data Analysis tabs is now above the output options, and is disabled during fitting.
 - The Fit Single Spectrum buttons in the Data Analysis tabs MSDFit, ConvFit, I(Q,t)Fit and F(Q)Fit are now disabled
   during fitting.
