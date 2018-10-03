@@ -179,6 +179,14 @@ void Iqt::run() {
   m_batchAlgoRunner->executeBatchAsync();
 }
 
+MatrixWorkspace_const_sptr Iqt::getADSWorkspace(std::string const &name) const {
+  return AnalysisDataService::Instance().retrieveWS<MatrixWorkspace>(name);
+}
+
+std::size_t Iqt::getOutWsNumberOfSpectra() const {
+  return getADSWorkspace(m_pythonExportWsName)->getNumberHistograms();
+}
+
 /**
  * Handle algorithm completion.
  *
@@ -191,10 +199,10 @@ void Iqt::algorithmComplete(bool error) {
     setTiledPlotEnabled(true);
     setSaveResultEnabled(true);
 
-    setPlotSpectrumIndexMax(static_cast<int>(getNumberOfSpectra()) - 1);
+    setPlotSpectrumIndexMax(static_cast<int>(getOutWsNumberOfSpectra()) - 1);
     setPlotSpectrumIndex(selectedSpectrum());
     setTiledPlotFirstIndex(selectedSpectrum());
-    setTiledPlotLastIndex(static_cast<int>(getNumberOfSpectra()) - 1);
+    setTiledPlotLastIndex(static_cast<int>(getOutWsNumberOfSpectra()) - 1);
   }
 }
 /**
@@ -225,7 +233,7 @@ bool Iqt::isErrorsEnabled() { return m_uiForm.cbCalculateErrors->isChecked(); }
 
 std::size_t Iqt::getXMinIndex(Mantid::MantidVec const &yData,
                               std::vector<double>::const_iterator iter) {
-  auto cropIndex = yData.size() - 1;
+  auto cropIndex = 0;
   if (iter != yData.end()) {
     auto const index = iter - yData.begin();
     cropIndex = index > 0 ? index - 1 : index;
@@ -248,9 +256,7 @@ double Iqt::getXMinValue(MatrixWorkspace_const_sptr workspace,
 void Iqt::plotTiled() {
   setTiledPlotIsPlotting(true);
 
-  MatrixWorkspace_const_sptr outWs =
-      AnalysisDataService::Instance().retrieveWS<MatrixWorkspace>(
-          m_pythonExportWsName);
+  auto const outWs = getADSWorkspace(m_pythonExportWsName);
 
   auto const tiledPlotWsName = outWs->getName() + "_tiled";
   auto const firstTiledPlot = m_uiForm.spTiledPlotFirst->text().toInt();
@@ -276,9 +282,8 @@ void Iqt::plotTiled() {
   crop->setProperty("EndWorkspaceIndex", lastTiledPlot);
   crop->setProperty("XMin", cropValue);
   crop->execute();
-  MatrixWorkspace_const_sptr tiledPlotWs =
-      AnalysisDataService::Instance().retrieveWS<MatrixWorkspace>(
-          tiledPlotWsName);
+
+  auto const tiledPlotWs = getADSWorkspace(tiledPlotWsName);
 
   // Plot tiledwindow
   std::size_t const numberOfPlots = lastTiledPlot - firstTiledPlot + 1;
