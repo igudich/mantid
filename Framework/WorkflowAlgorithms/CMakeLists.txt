@@ -32,6 +32,7 @@ set ( SRC_FILES
 	src/SANSBeamFinder.cpp
 	src/SANSBeamFluxCorrection.cpp
 	src/SANSSensitivityCorrection.cpp
+	src/SANSSolidAngleCorrection.cpp
 	src/SetupEQSANSReduction.cpp
 	src/SetupHFIRReduction.cpp
 	src/SetupILLD33Reduction.cpp
@@ -76,6 +77,7 @@ set ( INC_FILES
 	inc/MantidWorkflowAlgorithms/SANSBeamFinder.h
 	inc/MantidWorkflowAlgorithms/SANSBeamFluxCorrection.h
 	inc/MantidWorkflowAlgorithms/SANSSensitivityCorrection.h
+	inc/MantidWorkflowAlgorithms/SANSSolidAngleCorrection.h
 	inc/MantidWorkflowAlgorithms/SetupEQSANSReduction.h
 	inc/MantidWorkflowAlgorithms/SetupHFIRReduction.h
 	inc/MantidWorkflowAlgorithms/SetupILLD33Reduction.h
@@ -89,6 +91,7 @@ set ( TEST_FILES
 	LoadEventAndCompressTest.h
 	MuonProcessTest.h
 	ProcessIndirectFitParametersTest.h
+	SANSSolidAngleCorrectionTest.h
 	StepScanTest.h
 )
 
