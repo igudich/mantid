@@ -45,6 +45,7 @@ Bugfixes
   option in ConvFit.
 - An unexpected crash is prevented when Plot Current Preview is clicked when no data is loaded. A meaningful error
   message is now displayed.
+- A bug where fixed parameters don't remain fixed when using the FABADA minimizer in ConvFit has been corrected.
 
 
 Data Corrections Interface
