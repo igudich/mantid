@@ -31,18 +31,19 @@ class BatchProcessRunner(QObject):
     def on_error(self, error):
         self._worker = None
 
-    def process_states(self, states, use_optimizations, output_mode, plot_results, output_graph):
+    def process_states(self, states, use_optimizations, output_mode, plot_results, output_graph, save_can=False):
         self._worker = Worker(self._process_states_on_thread, states, use_optimizations, output_mode, plot_results,
-                              output_graph)
+                              output_graph, save_can)
         self._worker.signals.finished.connect(self.on_finished)
         self._worker.signals.error.connect(self.on_error)
 
         QThreadPool.globalInstance().start(self._worker)
 
-    def _process_states_on_thread(self, states, use_optimizations, output_mode, plot_results, output_graph):
+    def _process_states_on_thread(self, states, use_optimizations, output_mode, plot_results, output_graph,
+                                  save_can=False):
         for key, state in states.items():
             try:
-                self.batch_processor([state], use_optimizations, output_mode, plot_results, output_graph)
+                self.batch_processor([state], use_optimizations, output_mode, plot_results, output_graph, save_can)
                 self.row_processed_signal.emit(key)
             except Exception as e:
                 self.row_failed_signal.emit(key, str(e))

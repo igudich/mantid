@@ -825,6 +825,14 @@ class SANSDataProcessorGui(QtGui.QMainWindow, ui_sans_data_processor_window.Ui_S
         self.save_zero_error_free.setChecked(value)
 
     @property
+    def save_can(self):
+        return self.save_can_checkBox.isChecked()
+
+    @save_can.setter
+    def save_can(self, value):
+        self.save_can_checkBox.setChecked(value)
+
+    @property
     def progress_bar_minimum(self):
         return self.batch_progress_bar.minimum()
 

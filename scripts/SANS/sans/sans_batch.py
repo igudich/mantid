@@ -17,7 +17,8 @@ class SANSBatchReduction(object):
     def __init__(self):
         super(SANSBatchReduction, self).__init__()
 
-    def __call__(self, states, use_optimizations=True, output_mode=OutputMode.PublishToADS, plot_results = False, output_graph=''):
+    def __call__(self, states, use_optimizations=True, output_mode=OutputMode.PublishToADS, plot_results = False,
+                 output_graph='', save_can=False):
         """
         This is the start of any reduction.
 
@@ -30,13 +31,14 @@ class SANSBatchReduction(object):
         """
         self.validate_inputs(states, use_optimizations, output_mode, plot_results, output_graph)
 
-        self._execute(states, use_optimizations, output_mode, plot_results, output_graph)
+        self._execute(states, use_optimizations, output_mode, plot_results, output_graph, save_can=save_can)
 
     @staticmethod
-    def _execute(states, use_optimizations, output_mode, plot_results, output_graph):
+    def _execute(states, use_optimizations, output_mode, plot_results, output_graph, save_can=False):
         # Iterate over each state, load the data and perform the reduction
         for state in states:
-            single_reduction_for_batch(state, use_optimizations, output_mode, plot_results, output_graph)
+            single_reduction_for_batch(state, use_optimizations, output_mode, plot_results, output_graph,
+                                       save_can=save_can)
 
     def validate_inputs(self, states, use_optimizations, output_mode, plot_results, output_graph):
         # We are strict about the types here.
