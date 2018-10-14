@@ -585,28 +585,26 @@ void ContainerSubtraction::setSaveResultEnabled(bool enabled) {
   m_uiForm.pbSave->setEnabled(enabled);
 }
 
+void ContainerSubtraction::setButtonsEnabled(bool enabled) {
+  setRunEnabled(enabled);
+  setPlotSpectrumEnabled(enabled);
+  setPlotContourEnabled(enabled);
+  setSaveResultEnabled(enabled);
+}
+
 void ContainerSubtraction::setRunIsRunning(bool running) {
   m_uiForm.pbRun->setText(running ? "Running..." : "Run");
-  setRunEnabled(!running);
-  setPlotSpectrumEnabled(!running);
-  setPlotContourEnabled(!running);
-  setSaveResultEnabled(!running);
+  setButtonsEnabled(!running);
 }
 
 void ContainerSubtraction::setPlotSpectrumIsPlotting(bool plotting) {
   m_uiForm.pbPlotSpectrum->setText(plotting ? "Plotting..." : "Plot Spectrum");
-  setPlotSpectrumEnabled(!plotting);
-  setPlotContourEnabled(!plotting);
-  setRunEnabled(!plotting);
-  setSaveResultEnabled(!plotting);
+  setButtonsEnabled(!plotting);
 }
 
 void ContainerSubtraction::setPlotContourIsPlotting(bool plotting) {
   m_uiForm.pbPlotContour->setText(plotting ? "Plotting..." : "Plot Contour");
-  setPlotContourEnabled(!plotting);
-  setPlotSpectrumEnabled(!plotting);
-  setRunEnabled(!plotting);
-  setSaveResultEnabled(!plotting);
+  setButtonsEnabled(!plotting);
 }
 
 } // namespace CustomInterfaces

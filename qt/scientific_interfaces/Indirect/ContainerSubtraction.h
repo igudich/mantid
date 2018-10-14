@@ -102,6 +102,7 @@ private:
   void setPlotSpectrumEnabled(bool enabled);
   void setPlotContourEnabled(bool enabled);
   void setSaveResultEnabled(bool enabled);
+  void setButtonsEnabled(bool enabled);
   void setRunIsRunning(bool running);
   void setPlotSpectrumIsPlotting(bool plotting);
   void setPlotContourIsPlotting(bool plotting);
