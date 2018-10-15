@@ -104,6 +104,10 @@ class SANSDataProcessorGui(QtGui.QMainWindow, ui_sans_data_processor_window.Ui_S
             pass
 
         @abstractmethod
+        def on_load_clicked(self):
+            pass
+
+        @abstractmethod
         def on_multi_period_selection(self, show_periods):
             pass
 
@@ -283,6 +287,8 @@ class SANSDataProcessorGui(QtGui.QMainWindow, ui_sans_data_processor_window.Ui_S
 
         self.process_button.clicked.connect(self._processed_clicked)
 
+        self.load_botton.clicked.connect(self._load_clicked)
+
         self.help_button.clicked.connect(self._on_help_button_clicked)
 
         # --------------------------------------------------------------------------------------------------------------
@@ -417,6 +423,9 @@ class SANSDataProcessorGui(QtGui.QMainWindow, ui_sans_data_processor_window.Ui_S
         """
         self._call_settings_listeners(lambda listener: listener.on_processed_clicked())
 
+    def _load_clicked(self):
+        self._call_settings_listeners(lambda listener: listener.on_load_clicked())
+
     def _processing_finished(self):
         """
         Clean up
@@ -505,6 +514,7 @@ class SANSDataProcessorGui(QtGui.QMainWindow, ui_sans_data_processor_window.Ui_S
         self.batch_button.setEnabled(False)
         self.user_file_button.setEnabled(False)
         self.manage_directories_button.setEnabled(False)
+        self.load_botton.setEnabled(False)
 
     def enable_buttons(self):
         self.process_button.setEnabled(True)
@@ -512,6 +522,7 @@ class SANSDataProcessorGui(QtGui.QMainWindow, ui_sans_data_processor_window.Ui_S
         self.batch_button.setEnabled(True)
         self.user_file_button.setEnabled(True)
         self.manage_directories_button.setEnabled(True)
+        self.load_botton.setEnabled(True)
 
     def display_message_box(self, title, message, details):
         msg = QtGui.QMessageBox()
