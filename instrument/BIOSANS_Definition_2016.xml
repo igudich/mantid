@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='ASCII'?>
-<instrument last-modified="2016-05-19 16:43:36.344312"
+<instrument last-modified="2018-09-03 16:43:36.344312"
 	name="BIOSANS"
 	valid-from="2016-04-22 00:00:00"
 	valid-to="2100-01-31 23:59:59"
@@ -29,23 +29,45 @@
 	<type name="sample-position" is="SamplePos"/>
 	
 	<!-- ***************************************************************** -->
-	<!--MONITOR 1 -->
-	<component type="monitor1" idlist="monitor1">
-		<location z="-10.5" />
-	</component>
-	<type name="monitor1" is="monitor" />
-	<idlist idname="monitor1">
-		<id val="1" />
-	</idlist>
-	
-	<!--MONITOR 2 -->
-	<component type="timer1" idlist="timer1">
-		<location z="-10.5" />
-	</component>
-	<type name="timer1" is="monitor" />
-	<idlist idname="timer1">
-		<id val="2" />
-	</idlist>
+	  <!--MONITOR 1 -->  
+  
+  <component type="monitor1" idlist="monitor1">
+    <location/>
+  </component>
+  <type name="monitor1" is="monitor">
+    <component type="monitor">
+      <location z="-10.5" name="monitor1"/>
+    </component>
+  </type>
+  <idlist idname="monitor1">
+    <id val="1" />
+  </idlist>
+
+
+ <!--MONITOR 2 -->
+  <component type="timer1" idlist="timer1">
+    <location/>
+  </component>
+  <type name="timer1" is="monitor">
+    <component type="monitor">
+      <location z="-10.5" name="timer1"/>
+    </component>
+  </type>
+   <idlist idname="timer1">
+    <id val="2" />
+  </idlist>
+
+     <!-- Shape for Monitors-->
+  <!-- TODO: Update to real shape -->
+  <type is="monitor" name="monitor">
+    <cylinder id="some-shape">
+      <centre-of-bottom-base p="0.0" r="0.0" t="0.0"/>
+      <axis y="0.0" x="0.0" z="1.0"/>
+      <radius val="0.01"/>
+      <height val="0.03"/>
+    </cylinder>
+    <algebra val="some-shape"/>
+  </type>
 	
 	<!-- ***************************************************************** -->
 	<!-- Main Detector -->
@@ -537,7 +559,7 @@
 		</component>
 	</type>
 	
-	<type name="wing_pixel" is="detector">
+	<!-- <type name="wing_pixel" is="detector">
 		<cylinder id="cyl-approx">
 			<centre-of-bottom-base p="0.0" r="0.0" t="0.0"/>
 			<axis y="1.0" x="0.0" z="0.0"/>
@@ -545,7 +567,21 @@
 			<height val="0.0043"/>
 		</cylinder>
 		<algebra val="cyl-approx"/>
+	</type> -->
+
+
+	<!-- Pixel for Detectors: 5.5x4 mm -->
+	<type is="detector" name="wing_pixel">
+		<cuboid id="pixel-shape">
+			<left-front-bottom-point y="-0.002" x="-0.00275" z="0.0" />
+			<left-front-top-point y="0.002" x="-0.00275" z="0.0" />
+			<left-back-bottom-point y="-0.002" x="-0.00275" z="-0.0001" />
+			<right-front-bottom-point y="-0.002" x="0.00275" z="0.0" />
+		</cuboid>
+		<algebra val="pixel-shape" />
 	</type>
+	
+	
 	
 </instrument>
 

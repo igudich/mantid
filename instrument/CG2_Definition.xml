@@ -5,7 +5,7 @@
             name="CG2"
             valid-from="2016-04-22 00:00:00"
             valid-to="2100-01-31 23:59:59"
-		    last-modified="2016-05-20 08:24:35.208311">
+		    last-modified="2018-10-03 09:33:35.208311">
 
 
   <defaults>
@@ -34,22 +34,47 @@
 
   <!-- ***************************************************************** -->
   <!--MONITOR 1 -->
+  
+  
   <component type="monitor1" idlist="monitor1">
-    <location z="-10.5" />
+    <location/>
   </component>
-  <type name="monitor1" is="monitor" />
+  <type name="monitor1" is="monitor">
+    <component type="monitor">
+      <location z="-10.5" name="monitor1"/>
+    </component>
+  </type>
   <idlist idname="monitor1">
     <id val="1" />
   </idlist>
 
+
  <!--MONITOR 2 -->
   <component type="timer1" idlist="timer1">
-    <location z="-10.5" />
+    <location/>
   </component>
-  <type name="timer1" is="monitor" />
+  <type name="timer1" is="monitor">
+    <component type="monitor">
+      <location z="-10.5" name="timer1"/>
+    </component>
+  </type>
    <idlist idname="timer1">
     <id val="2" />
   </idlist>
+
+
+   <!-- Shape for Monitors-->
+  <!-- TODO: Update to real shape -->
+  <type is="monitor" name="monitor">
+    <cylinder id="some-shape">
+      <centre-of-bottom-base p="0.0" r="0.0" t="0.0"/>
+      <axis y="0.0" x="0.0" z="1.0"/>
+      <radius val="0.01"/>
+      <height val="0.03"/>
+    </cylinder>
+    <algebra val="some-shape"/>
+  </type>
+
 
   <component type="sample_aperture">
     <location z="0.0"/>
@@ -72,7 +97,7 @@
 </type>
 
 <!-- Pixel for Detector-->
-<type is="detector" name="pixel">
+<!-- <type is="detector" name="pixel">
     <cylinder id="cyl-approx">
       <centre-of-bottom-base p="0.0" r="0.0" t="0.0"/>
       <axis y="1.0" x="0.0" z="0.0"/>
@@ -80,7 +105,18 @@
       <height val="0.0043"/>
     </cylinder>
     <algebra val="cyl-approx"/>
-</type>
+</type> -->
+
+  <!-- Pixel for Detectors-->
+  <type is="detector" name="pixel">
+    <cuboid id="pixel-shape">
+      <left-front-bottom-point y="-0.0021485" x="-0.00275" z="0.0"/>
+      <left-front-top-point y="0.0021485" x="-0.00275" z="0.0"/>
+      <left-back-bottom-point y="-0.0021485" x="-0.00275" z="-0.000000001"/>
+      <right-front-bottom-point y="-0.0021485" x="0.00275" z="0.0"/>
+    </cuboid>
+    <algebra val="pixel-shape"/>
+  </type>
 
 </instrument>
 
