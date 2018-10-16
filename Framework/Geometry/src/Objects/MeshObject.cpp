@@ -22,7 +22,7 @@ namespace Geometry {
 using Kernel::Material;
 using Kernel::V3D;
 
-MeshObject::MeshObject(const std::vector<uint16_t> &faces,
+MeshObject::MeshObject(const std::vector<uint32_t> &faces,
                        const std::vector<V3D> &vertices,
                        const Kernel::Material &material)
     : m_boundingBox(), m_id("MeshObject"), m_triangles(faces),
@@ -31,7 +31,7 @@ MeshObject::MeshObject(const std::vector<uint16_t> &faces,
   initialize();
 }
 
-MeshObject::MeshObject(std::vector<uint16_t> &&faces,
+MeshObject::MeshObject(std::vector<uint32_t> &&faces,
                        std::vector<V3D> &&vertices,
                        const Kernel::Material &&material)
     : m_boundingBox(), m_id("MeshObject"), m_triangles(std::move(faces)),
@@ -43,7 +43,7 @@ MeshObject::MeshObject(std::vector<uint16_t> &&faces,
 // Do things that need to be done in constructor
 void MeshObject::initialize() {
 
-  if (m_vertices.size() > std::numeric_limits<uint16_t>::max()) {
+  if (m_vertices.size() > std::numeric_limits<uint32_t>::max()) {
     throw std::invalid_argument(
         "Too many vertices (" + std::to_string(m_vertices.size()) +
         "). MeshObject cannot have more than 65535 vertices.");
