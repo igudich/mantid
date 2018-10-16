@@ -12,7 +12,8 @@
 // Includes
 //----------------------------------------------------------------------
 #include "MantidAPI/Algorithm.h"
-#include "MantidAPI/SpectrumInfo.h"
+#include "MantidGeometry/Instrument/ComponentInfo.h"
+#include "MantidGeometry/Instrument/DetectorInfo.h"
 
 namespace Mantid {
 namespace Algorithms {
@@ -70,7 +71,8 @@ private:
   void exec() override;
   void execEvent();
 
-  double calculateSolidAngleCorrection(int, const API::SpectrumInfo &);
+  double calculateSolidAngle(int, const API::SpectrumInfo &, const Geometry::ComponentInfo &,
+    const double PixelSizeX, const double PixelSizeY);
 };
 
 } // namespace Algorithms
