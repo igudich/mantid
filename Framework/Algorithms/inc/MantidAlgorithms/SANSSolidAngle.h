@@ -5,8 +5,8 @@
 //     & Institut Laue - Langevin
 // SPDX - License - Identifier: GPL - 3.0 +
 
-#ifndef MANTID_ALGORITHMS_SANSSOLIDANGLECORRECTION2_H_
-#define MANTID_ALGORITHMS_SANSSOLIDANGLECORRECTION2_H_
+#ifndef MANTID_ALGORITHMS_SANSSOLIDANGLE_H_
+#define MANTID_ALGORITHMS_SANSSOLIDANGLE_H_
 
 //----------------------------------------------------------------------
 // Includes
@@ -14,6 +14,7 @@
 #include "MantidAPI/Algorithm.h"
 #include "MantidGeometry/Instrument/ComponentInfo.h"
 #include "MantidGeometry/Instrument/DetectorInfo.h"
+#include "MantidAPI/SpectrumInfo.h"
 
 namespace Mantid {
 namespace Algorithms {
@@ -43,11 +44,11 @@ namespace Algorithms {
     File change history is stored at: <https://github.com/mantidproject/mantid>
     Code Documentation is available at: <http://doxygen.mantidproject.org>
 */
-class DLLExport SANSSolidAngleCorrection2 : public API::Algorithm {
+class DLLExport SANSSolidAngle : public API::Algorithm {
 public:
   /// Algorithm's name
   const std::string name() const override {
-    return "SANSSolidAngleCorrection2";
+    return "SANSSolidAngle";
   }
   /// Summary of algorithms purpose
   const std::string summary() const override {
@@ -71,6 +72,7 @@ private:
   void exec() override;
   void execEvent();
 
+  double getYTubeAngle(const API::SpectrumInfo &spectrumInfo, size_t index);
   double calculateSolidAngle(int, const API::SpectrumInfo &, const Geometry::ComponentInfo &,
     const double PixelSizeX, const double PixelSizeY);
 };
@@ -78,4 +80,4 @@ private:
 } // namespace Algorithms
 } // namespace Mantid
 
-#endif /*MANTID_ALGORITHMS_SANSSOLIDANGLECORRECTION2_H_*/
+#endif /*MANTID_ALGORITHMS_SANSSOLIDANGLE_H_*/

@@ -5,12 +5,12 @@
 //     & Institut Laue - Langevin
 // SPDX - License - Identifier: GPL - 3.0 +
 
-#ifndef SANSSOLIDANGLECORRECTION2TEST_H_
-#define SANSSOLIDANGLECORRECTION2TEST_H_
+#ifndef SANSSOLIDANGLETEST_H_
+#define SANSSOLIDANGLETEST_H_
 
 #include "MantidAPI/AnalysisDataService.h"
 #include "MantidAPI/Axis.h"
-#include "MantidAlgorithms/SANSSolidAngleCorrection2.h"
+#include "MantidAlgorithms/SANSSolidAngle.h"
 #include "MantidDataHandling/LoadSpice2D.h"
 #include "MantidDataHandling/MoveInstrumentComponent.h"
 #include "MantidKernel/Unit.h"
@@ -19,10 +19,10 @@
 using namespace Mantid::API;
 using namespace Mantid::Kernel;
 
-class SANSSolidAngleCorrection2Test : public CxxTest::TestSuite {
+class SANSSolidAngleTest : public CxxTest::TestSuite {
 public:
   void testName() {
-    TS_ASSERT_EQUALS(correction.name(), "SANSSolidAngleCorrection2")
+    TS_ASSERT_EQUALS(correction.name(), "SANSSolidAngle")
   }
 
   void testVersion() { TS_ASSERT_EQUALS(correction.version(), 1) }
@@ -106,8 +106,8 @@ public:
   }
 
 private:
-  Mantid::Algorithms::SANSSolidAngleCorrection2 correction;
+  Mantid::Algorithms::SANSSolidAngle correction;
   std::string inputWS;
 };
 
-#endif /*SANSSOLIDANGLECORRECTION2TEST_H_*/
+#endif /*SANSSOLIDANGLETEST_H_*/
