@@ -12,9 +12,9 @@
 // Includes
 //----------------------------------------------------------------------
 #include "MantidAPI/Algorithm.h"
+#include "MantidAPI/SpectrumInfo.h"
 #include "MantidGeometry/Instrument/ComponentInfo.h"
 #include "MantidGeometry/Instrument/DetectorInfo.h"
-#include "MantidAPI/SpectrumInfo.h"
 
 namespace Mantid {
 namespace Algorithms {
@@ -47,9 +47,7 @@ namespace Algorithms {
 class DLLExport SANSSolidAngle : public API::Algorithm {
 public:
   /// Algorithm's name
-  const std::string name() const override {
-    return "SANSSolidAngle";
-  }
+  const std::string name() const override { return "SANSSolidAngle"; }
   /// Summary of algorithms purpose
   const std::string summary() const override {
     return "Performs solid angle correction on SANS 2D data.";
@@ -73,8 +71,9 @@ private:
   void execEvent();
 
   double getYTubeAngle(const API::SpectrumInfo &spectrumInfo, size_t index);
-  double calculateSolidAngle(int, const API::SpectrumInfo &, const Geometry::ComponentInfo &,
-    const double PixelSizeX, const double PixelSizeY);
+  double calculateSolidAngle(int, const API::SpectrumInfo &,
+                             const Geometry::ComponentInfo &,
+                             const double PixelSizeX, const double PixelSizeY);
 };
 
 } // namespace Algorithms

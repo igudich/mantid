@@ -8,17 +8,17 @@
 #include "MantidAlgorithms/SANSSolidAngle.h"
 #include "MantidAPI/AlgorithmProperty.h"
 #include "MantidAPI/HistogramValidator.h"
+#include "MantidAPI/InstrumentValidator.h"
 #include "MantidAPI/SpectrumInfo.h"
 #include "MantidAPI/WorkspaceFactory.h"
 #include "MantidAPI/WorkspaceUnitValidator.h"
 #include "MantidDataObjects/EventList.h"
 #include "MantidDataObjects/EventWorkspace.h"
+#include "MantidGeometry/Instrument.h"
 #include "MantidKernel/CompositeValidator.h"
+#include "MantidKernel/ListValidator.h"
 #include "MantidKernel/PropertyManager.h"
 #include "MantidKernel/PropertyManagerDataService.h"
-#include "MantidKernel/ListValidator.h"
-#include "MantidGeometry/Instrument.h"
-#include "MantidAPI/InstrumentValidator.h"
 
 namespace Mantid {
 namespace Algorithms {
@@ -50,13 +50,11 @@ void SANSSolidAngle::init() {
                   "and stored in the Analysis Data Service.");
 
   std::vector<std::string> exp_options{"Normal", "Tube", "Wing"};
-  declareProperty(
-      "Type", "Normal",
-      boost::make_shared<StringListValidator>(exp_options),
-      "Select the method to calculate the Solid Angle.\n"
-      "Normal: cos^3(theta); Tube: cons(alpha)*cos^3(theta); "
-      "Wing: cos^3(alpha);");
-
+  declareProperty("Type", "Normal",
+                  boost::make_shared<StringListValidator>(exp_options),
+                  "Select the method to calculate the Solid Angle.\n"
+                  "Normal: cos^3(theta); Tube: cons(alpha)*cos^3(theta); "
+                  "Wing: cos^3(alpha);");
 }
 
 void SANSSolidAngle::exec() {
@@ -64,8 +62,8 @@ void SANSSolidAngle::exec() {
   // Get the workspaces
   API::MatrixWorkspace_const_sptr inputWS = getProperty("InputWorkspace");
   const int numberOfSpectra = static_cast<int>(inputWS->getNumberHistograms());
-  API::MatrixWorkspace_sptr outputWS = WorkspaceFactory::Instance().create(
-      inputWS, numberOfSpectra, 2, 1);
+  API::MatrixWorkspace_sptr outputWS =
+      WorkspaceFactory::Instance().create(inputWS, numberOfSpectra, 2, 1);
   // The result of this will be a distribution
   outputWS->setDistribution(true);
   outputWS->setYUnit("");
@@ -75,8 +73,10 @@ void SANSSolidAngle::exec() {
   const auto &spectrumInfo = inputWS->spectrumInfo();
   const auto &componentInfo = inputWS->componentInfo();
   const auto &instrument = inputWS->getInstrument();
-  const double pixelSizeX = inputWS->getInstrument()->getNumberParameter("x-pixel-size")[0];
-  const double pixelSizeY = inputWS->getInstrument()->getNumberParameter("y-pixel-size")[0];
+  const double pixelSizeX =
+      inputWS->getInstrument()->getNumberParameter("x-pixel-size")[0];
+  const double pixelSizeY =
+      inputWS->getInstrument()->getNumberParameter("y-pixel-size")[0];
 
   Progress prog(this, 0.0, 1.0, numberOfSpectra);
 
@@ -84,12 +84,13 @@ void SANSSolidAngle::exec() {
   PARALLEL_FOR_IF(Kernel::threadSafe(*outputWS, *inputWS))
   for (int i = 0; i < numberOfSpectra; ++i) {
     PARALLEL_START_INTERUPT_REGION
-    
+
     if (spectrumInfo.hasDetectors(i) && !spectrumInfo.isMonitor(i)) {
       // Copy over the spectrum number & detector IDs
       outputWS->getSpectrum(i).copyInfoFrom(inputWS->getSpectrum(i));
-      
-      double solidAngle = calculateSolidAngle(i, spectrumInfo, componentInfo, pixelSizeX, pixelSizeY);
+
+      double solidAngle = calculateSolidAngle(i, spectrumInfo, componentInfo,
+                                              pixelSizeX, pixelSizeY);
 
       outputWS->mutableX(i)[0] = inputWS->x(i).front();
       outputWS->mutableX(i)[1] = inputWS->x(i).back();
@@ -105,15 +106,14 @@ void SANSSolidAngle::exec() {
     PARALLEL_END_INTERUPT_REGION
   } // loop over spectra
   PARALLEL_CHECK_INTERUPT_REGION
-
 }
-
 
 /*
  * Returns the angle between the sample-to-pixel vector and its
  * projection on the X-Z plane.
  * */
-double SANSSolidAngle::getYTubeAngle(const SpectrumInfo &spectrumInfo, size_t index) {
+double SANSSolidAngle::getYTubeAngle(const SpectrumInfo &spectrumInfo,
+                                     size_t index) {
   const V3D samplePos = spectrumInfo.samplePosition();
 
   // Get the vector from the sample position to the detector pixel
@@ -131,36 +131,36 @@ double SANSSolidAngle::getYTubeAngle(const SpectrumInfo &spectrumInfo, size_t in
 /**
  * Compute the solid angle
  * */
-double SANSSolidAngle::calculateSolidAngle(
-    int histogramIndex, const SpectrumInfo &spectrumInfo, const ComponentInfo &componentInfo,
-    const double pixelSizeX, const double pixelSizeY) {
+double SANSSolidAngle::calculateSolidAngle(int histogramIndex,
+                                           const SpectrumInfo &spectrumInfo,
+                                           const ComponentInfo &componentInfo,
+                                           const double pixelSizeX,
+                                           const double pixelSizeY) {
 
   // Compute solid angle correction factor
 
   const std::string type = getProperty("Type");
-  double pixelScale = pixelSizeX * componentInfo.scaleFactor(histogramIndex)[0]  
-    * pixelSizeY * componentInfo.scaleFactor(histogramIndex)[1];
+  double pixelScale = pixelSizeX *
+                      componentInfo.scaleFactor(histogramIndex)[0] *
+                      pixelSizeY * componentInfo.scaleFactor(histogramIndex)[1];
   double distance = spectrumInfo.l2(histogramIndex);
 
   double angularTerm = 0;
-  if (type == "Normal"){
-    double cosTheta = cos(spectrumInfo.twoTheta(histogramIndex));  
-    angularTerm = cosTheta*cosTheta*cosTheta;
-  }
-  else if (type == "Tube"){
-    double cosTheta = cos(spectrumInfo.twoTheta(histogramIndex));  
-    double cosAlpha = cos(getYTubeAngle(spectrumInfo, histogramIndex));  
-    angularTerm = cosTheta*cosTheta*cosAlpha;
-  }
-  else if (type == "Wing"){
-    double cosAlpha = cos(getYTubeAngle(spectrumInfo, histogramIndex));  
-    angularTerm = cosAlpha*cosAlpha*cosAlpha;
+  if (type == "Normal") {
+    double cosTheta = cos(spectrumInfo.twoTheta(histogramIndex));
+    angularTerm = cosTheta * cosTheta * cosTheta;
+  } else if (type == "Tube") {
+    double cosTheta = cos(spectrumInfo.twoTheta(histogramIndex));
+    double cosAlpha = cos(getYTubeAngle(spectrumInfo, histogramIndex));
+    angularTerm = cosTheta * cosTheta * cosAlpha;
+  } else if (type == "Wing") {
+    double cosAlpha = cos(getYTubeAngle(spectrumInfo, histogramIndex));
+    angularTerm = cosAlpha * cosAlpha * cosAlpha;
   } else {
     throw std::runtime_error("Invalid type of correction");
   }
 
-  return (pixelScale * angularTerm) / (distance*distance);
-
+  return (pixelScale * angularTerm) / (distance * distance);
 }
 
 } // namespace Algorithms
