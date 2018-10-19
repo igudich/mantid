@@ -39,6 +39,7 @@
 #include <json/json.h>
 
 #include <map>
+#include <fstream>
 
 // Index property handling template definitions
 #include "MantidAPI/Algorithm.tcc"
@@ -90,8 +91,21 @@ template MANTID_API_DLL bool Algorithm::isEmpty<std::size_t>(const std::size_t);
 //=================================
 //=============================================================================================
 
+Algorithm::AlgoRegister::~AlgoRegister() {
+  std::fstream fstr;
+  fstr.open("./algoregister.out", std::ios::out);
+  fstr << "DURATION\n";
+  for(auto& it: duration)
+    fstr << it.first.id << ":" << it.first.name << "=" << it.second << "\n";
+  fstr << "EDGES\n";
+  for(auto it: edges)
+    fstr << it.first.id << ":" << it.first.name << "->" << it.second.id << ":" << it.second.name << "\n";
+}
+
 /// Initialize static algorithm counter
 size_t Algorithm::g_execCount = 0;
+
+Algorithm::AlgoRegister Algorithm::m_algoRegister = Algorithm::AlgoRegister();
 
 /// Constructor
 Algorithm::Algorithm()
@@ -104,7 +118,9 @@ Algorithm::Algorithm()
       m_isAlgStartupLoggingEnabled(true), m_startChildProgress(0.),
       m_endChildProgress(0.), m_algorithmID(this), m_singleGroup(-1),
       m_groupsHaveSimilarNames(false),
-      m_communicator(Kernel::make_unique<Parallel::Communicator>()) {}
+      m_communicator(Kernel::make_unique<Parallel::Communicator>()) {
+  m_algoRegister.duration.insert(std::make_pair(AlgoId{reinterpret_cast<std::size_t >(this), ""}, 0.0l));
+}
 
 /// Virtual destructor
 Algorithm::~Algorithm() {
@@ -587,6 +603,28 @@ bool Algorithm::execute() {
       // The total runtime including all init steps is used for general logging.
       const float duration = timingInit + timingPropertyValidation +
                              timingInputValidation + timingExec;
+
+
+
+
+      auto locId = reinterpret_cast<size_t>(this);
+      auto iter = std::find_if(m_algoRegister.duration.begin(),
+          m_algoRegister.duration.end(),
+          [&locId](const std::pair<AlgoId, double>& pr) {
+            return locId == pr.first.id;
+          }
+      );
+      if(iter == m_algoRegister.duration.end())
+        std::cerr << "NOT REGISTERED ALGORITHM " << this->name() << "\n";
+      else {
+        iter->second = duration;
+        const_cast<std::string&>(iter->first.name) = std::string(this->name());
+      }
+
+
+
+
+
       // need it to throw before trying to run fillhistory() on an algorithm
       // which has failed
       if (trackingHistory() && m_history) {
@@ -823,6 +861,8 @@ void Algorithm::setupAsChildAlgorithm(Algorithm_sptr alg,
   // It will be used this to pass on cancellation requests
   // It must be protected by a critical block so that Child Algorithms can run
   // in parallel safely.
+  m_algoRegister.edges.emplace_back(std::make_pair(AlgoId{reinterpret_cast<std::size_t >(this), this->name()},
+      AlgoId{reinterpret_cast<std::size_t>(alg.get()), alg->name()}));
   boost::weak_ptr<IAlgorithm> weakPtr(alg);
   PARALLEL_CRITICAL(Algorithm_StoreWeakPtr) {
     m_ChildAlgorithms.push_back(weakPtr);

@@ -80,6 +80,21 @@ http://proj-gaudi.web.cern.ch/proj-gaudi/)
 class MANTID_API_DLL Algorithm : public IAlgorithm,
                                  public Kernel::PropertyManagerOwner {
 public:
+  struct AlgoId {
+    std::size_t id;
+    std::string name;
+  };
+
+  class  AlgoRegister {
+  public:
+    std::vector<std::pair<AlgoId, AlgoId>> edges;
+    std::map<AlgoId, double, std::function<bool(const AlgoId&, const AlgoId&)> >
+        duration{[](const AlgoId& a1, const AlgoId& a2) {return a1.id < a2.id; }};
+    ~AlgoRegister();
+  };
+
+  static MANTID_API_DLL AlgoRegister m_algoRegister;
+public:
   /// Base class for algorithm notifications
   class MANTID_API_DLL AlgorithmNotification : public Poco::Notification {
   public:
