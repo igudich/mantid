@@ -8,6 +8,7 @@
 #define MANTID_API_ALGORITHM_H_
 
 #include <atomic>
+#include <thread>
 
 #include "MantidAPI/DllConfig.h"
 #include "MantidAPI/IAlgorithm.h"
@@ -79,6 +80,25 @@ http://proj-gaudi.web.cern.ch/proj-gaudi/)
 */
 class MANTID_API_DLL Algorithm : public IAlgorithm,
                                  public Kernel::PropertyManagerOwner {
+
+  class AlgoTimeRegister {
+  public:
+    struct Info {
+      std::string name;
+      std::thread::id threadId;
+      std::chrono::high_resolution_clock::time_point begin;
+      std::chrono::high_resolution_clock::time_point end;
+    };
+
+    AlgoTimeRegister();
+    ~AlgoTimeRegister();
+
+    std::mutex mutex;
+    std::vector<Info> info;
+    std::chrono::high_resolution_clock::time_point start;
+  };
+
+  static AlgoTimeRegister m_algoTimeRegister;
 public:
   /// Base class for algorithm notifications
   class MANTID_API_DLL AlgorithmNotification : public Poco::Notification {

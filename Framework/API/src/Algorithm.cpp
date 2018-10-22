@@ -39,6 +39,7 @@
 #include <json/json.h>
 
 #include <map>
+#include <fstream>
 
 // Index property handling template definitions
 #include "MantidAPI/Algorithm.tcc"
@@ -92,6 +93,21 @@ template MANTID_API_DLL bool Algorithm::isEmpty<std::size_t>(const std::size_t);
 
 /// Initialize static algorithm counter
 size_t Algorithm::g_execCount = 0;
+
+Algorithm::AlgoTimeRegister::AlgoTimeRegister()
+: start(std::chrono::high_resolution_clock::now()) {}
+
+Algorithm::AlgoTimeRegister::~AlgoTimeRegister() {
+  std::fstream fs;
+  fs.open("./algotimeregister.out", std::ios::out);
+  for(auto& elem: info)
+    fs << elem.threadId << ">>"
+    << elem.name << ":"
+    << std::chrono::duration<double, std::milli>(elem.begin - start).count() << "<>"
+    << std::chrono::duration<double, std::milli>(elem.end - start).count() << "\n";
+}
+
+Algorithm::AlgoTimeRegister Algorithm::m_algoTimeRegister;
 
 /// Constructor
 Algorithm::Algorithm()
@@ -445,6 +461,7 @@ void Algorithm::unlockWorkspaces() {
  *  @return true if executed successfully.
  */
 bool Algorithm::execute() {
+  auto regStart = std::chrono::high_resolution_clock::now();
   Timer timer;
   AlgorithmManager::Instance().notifyAlgorithmStarting(this->getAlgorithmID());
   {
@@ -587,6 +604,19 @@ bool Algorithm::execute() {
       // The total runtime including all init steps is used for general logging.
       const float duration = timingInit + timingPropertyValidation +
                              timingInputValidation + timingExec;
+
+
+
+      auto regFinish = std::chrono::high_resolution_clock::now();
+      {
+        std::lock_guard<std::mutex> lock(m_algoTimeRegister.mutex);
+        m_algoTimeRegister.info.emplace_back(
+            AlgoTimeRegister::Info{name(), std::this_thread::get_id(), regStart, regFinish}
+            );
+      }
+
+
+
       // need it to throw before trying to run fillhistory() on an algorithm
       // which has failed
       if (trackingHistory() && m_history) {
