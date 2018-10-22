@@ -100,6 +100,7 @@ Algorithm::AlgoTimeRegister::AlgoTimeRegister()
 Algorithm::AlgoTimeRegister::~AlgoTimeRegister() {
   std::fstream fs;
   fs.open("./algotimeregister.out", std::ios::out);
+  fs << "START_POINT: " << start.time_since_epoch().count() << "\n";
   for(auto& elem: info)
     fs << elem.threadId << ">>"
     << elem.name << ":"
