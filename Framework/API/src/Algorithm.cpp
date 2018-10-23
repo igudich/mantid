@@ -95,17 +95,24 @@ template MANTID_API_DLL bool Algorithm::isEmpty<std::size_t>(const std::size_t);
 size_t Algorithm::g_execCount = 0;
 
 Algorithm::AlgoTimeRegister::AlgoTimeRegister()
-: start(std::chrono::high_resolution_clock::now()) {}
+: start(std::chrono::high_resolution_clock::now()) {
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &hstart);
+}
 
 Algorithm::AlgoTimeRegister::~AlgoTimeRegister() {
   std::fstream fs;
   fs.open("./algotimeregister.out", std::ios::out);
-  fs << "START_POINT: " << start.time_since_epoch().count() << "\n";
-  for(auto& elem: info)
+  fs << "START_POINT: "
+  << std::chrono::duration_cast<std::chrono::nanoseconds>
+      (start.time_since_epoch()).count() << "\n";
+  for(auto& elem: info) {
+    auto st = diff(hstart, elem.begin);
+    auto fi = diff( hstart, elem.end);
     fs << elem.threadId << ">>"
-    << elem.name << ":"
-    << std::chrono::duration<double, std::milli>(elem.begin - start).count() << "<>"
-    << std::chrono::duration<double, std::milli>(elem.end - start).count() << "\n";
+       << elem.name << ":"
+       << std::size_t(st.tv_sec*1000000000) + st.tv_nsec << "<>"
+       << std::size_t(fi.tv_sec*1000000000) + fi.tv_nsec << "\n";
+  }
 }
 
 Algorithm::AlgoTimeRegister Algorithm::m_algoTimeRegister;
@@ -462,7 +469,8 @@ void Algorithm::unlockWorkspaces() {
  *  @return true if executed successfully.
  */
 bool Algorithm::execute() {
-  auto regStart = std::chrono::high_resolution_clock::now();
+  timespec regStart;
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &regStart);
   Timer timer;
   AlgorithmManager::Instance().notifyAlgorithmStarting(this->getAlgorithmID());
   {
@@ -608,11 +616,12 @@ bool Algorithm::execute() {
 
 
 
-      auto regFinish = std::chrono::high_resolution_clock::now();
+      timespec regFinish;
+      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &regFinish);
       {
         std::lock_guard<std::mutex> lock(m_algoTimeRegister.mutex);
         m_algoTimeRegister.info.emplace_back(
-            AlgoTimeRegister::Info{name(), std::this_thread::get_id(), regStart, regFinish}
+            name(), std::this_thread::get_id(), regStart, regFinish
             );
       }
 
