@@ -96,7 +96,7 @@ size_t Algorithm::g_execCount = 0;
 
 Algorithm::AlgoTimeRegister::AlgoTimeRegister()
 : start(std::chrono::high_resolution_clock::now()) {
-  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &hstart);
+  clock_gettime(CLOCK_MONOTONIC, &hstart);
 }
 
 Algorithm::AlgoTimeRegister::~AlgoTimeRegister() {
@@ -470,7 +470,7 @@ void Algorithm::unlockWorkspaces() {
  */
 bool Algorithm::execute() {
   timespec regStart;
-  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &regStart);
+  clock_gettime(CLOCK_MONOTONIC, &regStart);
   Timer timer;
   AlgorithmManager::Instance().notifyAlgorithmStarting(this->getAlgorithmID());
   {
@@ -617,7 +617,7 @@ bool Algorithm::execute() {
 
 
       timespec regFinish;
-      clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &regFinish);
+      clock_gettime(CLOCK_MONOTONIC, &regFinish);
       {
         std::lock_guard<std::mutex> lock(m_algoTimeRegister.mutex);
         m_algoTimeRegister.info.emplace_back(
