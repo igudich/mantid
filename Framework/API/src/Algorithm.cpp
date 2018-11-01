@@ -104,7 +104,8 @@ Algorithm::AlgoTimeRegister::~AlgoTimeRegister() {
   fs.open("./algotimeregister.out", std::ios::out);
   fs << "START_POINT: "
   << std::chrono::duration_cast<std::chrono::nanoseconds>
-      (start.time_since_epoch()).count() << "\n";
+      (start.time_since_epoch()).count() << " MAX_THREAD: "
+      << PARALLEL_GET_MAX_THREADS << "\n";
   for(auto& elem: info) {
     auto st = diff(hstart, elem.begin);
     auto fi = diff( hstart, elem.end);
