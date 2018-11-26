@@ -8,6 +8,7 @@ set ( SRC_FILES
 	src/AlgorithmObserver.cpp
 	src/AlgorithmProperty.cpp
 	src/AlgorithmProxy.cpp
+	src/AlgoTimeRegister.cpp
 	src/AnalysisDataService.cpp
 	src/ArchiveSearchFactory.cpp
 	src/Axis.cpp
@@ -173,6 +174,7 @@ set ( INC_FILES
 	inc/MantidAPI/AlgorithmObserver.h
 	inc/MantidAPI/AlgorithmProperty.h
 	inc/MantidAPI/AlgorithmProxy.h
+	inc/MantidAPI/AlgoTimeRegister.h
 	inc/MantidAPI/AnalysisDataService.h
 	inc/MantidAPI/ArchiveSearchFactory.h
 	inc/MantidAPI/Axis.h

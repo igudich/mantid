@@ -7,10 +7,6 @@
 #ifndef MANTID_API_ALGORITHM_H_
 #define MANTID_API_ALGORITHM_H_
 
-#include <atomic>
-#include <thread>
-#include <time.h>
-
 #include "MantidAPI/DllConfig.h"
 #include "MantidAPI/IAlgorithm.h"
 #include "MantidAPI/IndexTypeProperty.h"
@@ -81,50 +77,12 @@ http://proj-gaudi.web.cern.ch/proj-gaudi/)
 */
 class MANTID_API_DLL Algorithm : public IAlgorithm,
                                  public Kernel::PropertyManagerOwner {
-
-  class AlgoTimeRegister {
-  public:
-
-    inline timespec diff(timespec start, timespec end)
-    {
-      timespec temp;
-      if ((end.tv_nsec-start.tv_nsec) < 0) {
-        temp.tv_sec = end.tv_sec-start.tv_sec-1;
-        temp.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;
-      } else {
-        temp.tv_sec = end.tv_sec-start.tv_sec;
-        temp.tv_nsec = end.tv_nsec-start.tv_nsec;
-      }
-      return temp;
-    }
-
-    struct Info {
-      std::string name;
-      std::thread::id threadId;
-      timespec begin;
-      timespec end;
-
-      Info(const std::string& nm, const std::thread::id& id, const timespec& be, const timespec& en) :
-      name(nm), threadId(id), begin(be), end(en) {}
-    };
-
-    AlgoTimeRegister();
-    ~AlgoTimeRegister();
-
-    std::mutex mutex;
-    std::vector<Info> info;
-    timespec hstart;
-    std::chrono::high_resolution_clock::time_point start;
-  };
-
-  static AlgoTimeRegister m_algoTimeRegister;
 public:
   /// Base class for algorithm notifications
   class MANTID_API_DLL AlgorithmNotification : public Poco::Notification {
   public:
     AlgorithmNotification(const Algorithm *const alg);
     const IAlgorithm *algorithm() const;
-
   private:
     const IAlgorithm *const m_algorithm; ///< The algorithm
   };
@@ -255,7 +213,7 @@ public:
 
   /** @name IAlgorithm methods */
   void initialize() override;
-  bool execute() override;
+  bool execute() override final;
   void executeAsChildAlg() override;
   std::map<std::string, std::string> validateInputs() override;
   bool isInitialized() const override;
@@ -453,6 +411,9 @@ private:
   void linkHistoryWithLastChild();
 
   void logAlgorithmInfo() const;
+
+  /// To be wrapped with execute() function to add instrumentation before and after
+  bool executeInternal();
 
   bool executeAsyncImpl(const Poco::Void &i);
 

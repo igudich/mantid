@@ -9,6 +9,7 @@
 #include "MantidAPI/AlgorithmHistory.h"
 #include "MantidAPI/AlgorithmManager.h"
 #include "MantidAPI/AlgorithmProxy.h"
+#include "MantidAPI/AlgoTimeRegister.h"
 #include "MantidAPI/AnalysisDataService.h"
 #include "MantidAPI/DeprecatedAlgorithm.h"
 #include "MantidAPI/IWorkspaceProperty.h"
@@ -44,6 +45,8 @@
 // Index property handling template definitions
 #include "MantidAPI/Algorithm.tcc"
 
+#include "MantidAPI/AlgoTimeRegister.h"
+
 using namespace Mantid::Kernel;
 
 namespace Mantid {
@@ -55,7 +58,7 @@ const std::string WORKSPACE_TYPES_SEPARATOR = ";";
 class WorkspacePropertyValueIs {
 public:
   explicit WorkspacePropertyValueIs(const std::string &value)
-      : m_value(value){};
+      : m_value(value) {};
   bool operator()(IWorkspaceProperty *property) {
     Property *prop = dynamic_cast<Property *>(property);
     if (!prop)
@@ -72,11 +75,11 @@ private:
 // https://bugzilla.gnome.org/show_bug.cgi?id=406027
 // so we have to ignore them
 ///@cond
-template <typename NumT> bool Algorithm::isEmpty(const NumT toCheck) {
+template<typename NumT> bool Algorithm::isEmpty(const NumT toCheck) {
   return static_cast<int>(toCheck) == EMPTY_INT();
 }
 
-template <> MANTID_API_DLL bool Algorithm::isEmpty(const double toCheck) {
+template<> MANTID_API_DLL bool Algorithm::isEmpty(const double toCheck) {
   return std::abs((toCheck - EMPTY_DBL()) / (EMPTY_DBL())) < 1e-8;
 }
 
@@ -93,30 +96,6 @@ template MANTID_API_DLL bool Algorithm::isEmpty<std::size_t>(const std::size_t);
 
 /// Initialize static algorithm counter
 size_t Algorithm::g_execCount = 0;
-
-Algorithm::AlgoTimeRegister::AlgoTimeRegister()
-: start(std::chrono::high_resolution_clock::now()) {
-  clock_gettime(CLOCK_MONOTONIC, &hstart);
-}
-
-Algorithm::AlgoTimeRegister::~AlgoTimeRegister() {
-  std::fstream fs;
-  fs.open("./algotimeregister.out", std::ios::out);
-  fs << "START_POINT: "
-  << std::chrono::duration_cast<std::chrono::nanoseconds>
-      (start.time_since_epoch()).count() << " MAX_THREAD: "
-      << PARALLEL_GET_MAX_THREADS << "\n";
-  for(auto& elem: info) {
-    auto st = diff(hstart, elem.begin);
-    auto fi = diff( hstart, elem.end);
-    fs << elem.threadId << ">>"
-       << elem.name << ":"
-       << std::size_t(st.tv_sec*1000000000) + st.tv_nsec << "<>"
-       << std::size_t(fi.tv_sec*1000000000) + fi.tv_nsec << "\n";
-  }
-}
-
-Algorithm::AlgoTimeRegister Algorithm::m_algoTimeRegister;
 
 /// Constructor
 Algorithm::Algorithm()
@@ -316,9 +295,9 @@ void Algorithm::initialize() {
   } catch (std::runtime_error &) {
     throw;
   }
-  // Unpleasant catch-all! Along with this, Gaudi version catches GaudiException
-  // & std::exception
-  // but doesn't really do anything except (print fatal) messages.
+    // Unpleasant catch-all! Along with this, Gaudi version catches GaudiException
+    // & std::exception
+    // but doesn't really do anything except (print fatal) messages.
   catch (...) {
     // Gaudi: A call to the auditor service is here
     // (1) perform the printout
@@ -354,21 +333,18 @@ void Algorithm::cacheWorkspaceProperties() {
     IWorkspaceProperty *wsProp = dynamic_cast<IWorkspaceProperty *>(prop);
     if (wsProp) {
       switch (prop->direction()) {
-      case Kernel::Direction::Input:
-        m_inputWorkspaceProps.push_back(wsProp);
+      case Kernel::Direction::Input:m_inputWorkspaceProps.push_back(wsProp);
         break;
-      case Kernel::Direction::InOut:
-        m_inputWorkspaceProps.push_back(wsProp);
+      case Kernel::Direction::InOut:m_inputWorkspaceProps.push_back(wsProp);
         m_outputWorkspaceProps.push_back(wsProp);
         break;
-      case Kernel::Direction::Output:
-        m_outputWorkspaceProps.push_back(wsProp);
+      case Kernel::Direction::Output:m_outputWorkspaceProps.push_back(wsProp);
         m_pureOutputWorkspaceProps.push_back(wsProp);
         break;
       default:
         throw std::logic_error(
             "Unexpected property direction found for property " + prop->name() +
-            " of algorithm " + this->name());
+                " of algorithm " + this->name());
       }
     } // is a ws property
   }   // each property
@@ -458,6 +434,10 @@ void Algorithm::unlockWorkspaces() {
   m_writeLockedWorkspaces.clear();
 }
 
+}
+Instrumentation::AlgoTimeRegister Instrumentation::AlgoTimeRegister::globalAlgoTimeRegister;
+namespace API {
+
 //---------------------------------------------------------------------------------------------
 /** The actions to be performed by the algorithm on a dataset. This method is
  *  invoked for top level algorithms by the application manager.
@@ -470,8 +450,16 @@ void Algorithm::unlockWorkspaces() {
  *  @return true if executed successfully.
  */
 bool Algorithm::execute() {
-  timespec regStart;
-  clock_gettime(CLOCK_MONOTONIC, &regStart);
+  Instrumentation::AlgoTimeRegister::AlgoTimeRegister::Dump
+      dmp(Instrumentation::AlgoTimeRegister::globalAlgoTimeRegister, name());
+  return executeInternal();
+}
+
+/**
+ * Function to be wrapped with bool execute(), contains all processing
+ * @return
+ */
+bool Algorithm::executeInternal() {
   Timer timer;
   AlgorithmManager::Instance().notifyAlgorithmStarting(this->getAlgorithmID());
   {
@@ -614,18 +602,6 @@ bool Algorithm::execute() {
       // The total runtime including all init steps is used for general logging.
       const float duration = timingInit + timingPropertyValidation +
                              timingInputValidation + timingExec;
-
-
-
-      timespec regFinish;
-      clock_gettime(CLOCK_MONOTONIC, &regFinish);
-      {
-        std::lock_guard<std::mutex> lock(m_algoTimeRegister.mutex);
-        m_algoTimeRegister.info.emplace_back(
-            name(), std::this_thread::get_id(), regStart, regFinish
-            );
-      }
-
 
 
       // need it to throw before trying to run fillhistory() on an algorithm
