@@ -45,8 +45,6 @@
 // Index property handling template definitions
 #include "MantidAPI/Algorithm.tcc"
 
-#include "MantidAPI/AlgoTimeRegister.h"
-
 using namespace Mantid::Kernel;
 
 namespace Mantid {
@@ -432,27 +430,6 @@ void Algorithm::unlockWorkspaces() {
   // Don't double-unlock workspaces
   m_readLockedWorkspaces.clear();
   m_writeLockedWorkspaces.clear();
-}
-
-}
-Instrumentation::AlgoTimeRegister Instrumentation::AlgoTimeRegister::globalAlgoTimeRegister;
-namespace API {
-
-//---------------------------------------------------------------------------------------------
-/** The actions to be performed by the algorithm on a dataset. This method is
- *  invoked for top level algorithms by the application manager.
- *  This method invokes exec() method.
- *  For Child Algorithms either the execute() method or exec() method
- *  must be EXPLICITLY invoked by the parent algorithm.
- *
- *  @throw runtime_error Thrown if algorithm or Child Algorithm cannot be
- *executed
- *  @return true if executed successfully.
- */
-bool Algorithm::execute() {
-  Instrumentation::AlgoTimeRegister::AlgoTimeRegister::Dump
-      dmp(Instrumentation::AlgoTimeRegister::globalAlgoTimeRegister, name());
-  return executeInternal();
 }
 
 /**
