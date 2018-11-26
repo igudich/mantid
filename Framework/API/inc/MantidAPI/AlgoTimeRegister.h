@@ -7,8 +7,8 @@
 #ifndef MANTID_API_ALGOTIMEREGISTER_H_
 #define MANTID_API_ALGOTIMEREGISTER_H_
 
-#include <thread>
 #include <mutex>
+#include <thread>
 #include <vector>
 
 #include "MantidAPI/DllConfig.h"
@@ -18,41 +18,45 @@ class timespec;
 namespace Mantid {
 namespace Instrumentation {
 
-/** AlgoTimeRegister : TODO: DESCRIPTION
-*/
+/** AlgoTimeRegister : simple class to dump information about executed
+ * algorithms
+ */
 class AlgoTimeRegister {
 public:
   static AlgoTimeRegister globalAlgoTimeRegister;
   static timespec diff(timespec start, timespec end);
   struct Info {
-    std::string name;
-    std::thread::id threadId;
-    timespec begin;
-    timespec end;
+    std::string m_name;
+    std::thread::id m_threadId;
+    timespec m_begin;
+    timespec m_end;
 
-    Info(const std::string& nm, const std::thread::id& id, const timespec& be, const timespec& en) :
-        name(nm), threadId(id), begin(be), end(en) {}
+    Info(const std::string &nm, const std::thread::id &id, const timespec &be,
+         const timespec &en)
+        : m_name(nm), m_threadId(id), m_begin(be), m_end(en) {}
   };
 
   class Dump {
-    AlgoTimeRegister& algoTimeRegister;
-    timespec regStart;
-    const std::string name;
+    AlgoTimeRegister &m_algoTimeRegister;
+    timespec m_regStart;
+    const std::string m_name;
+
   public:
-    Dump(AlgoTimeRegister& atr, const std::string& nm);
+    Dump(AlgoTimeRegister &atr, const std::string &nm);
     ~Dump();
   };
 
   AlgoTimeRegister();
   ~AlgoTimeRegister();
+
 private:
-  std::mutex mutex;
-  std::vector<Info> info;
-  timespec hstart;
-  std::chrono::high_resolution_clock::time_point start;
+  std::mutex m_mutex;
+  std::vector<Info> m_info;
+  timespec m_hstart;
+  std::chrono::high_resolution_clock::time_point m_start;
 };
 
-} // namespace API
+} // namespace Instrumentation
 } // namespace Mantid
 
 #endif /* MANTID_API_ALGOTIMEREGISTER_H_ */
